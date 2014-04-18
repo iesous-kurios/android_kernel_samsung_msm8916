@@ -29,6 +29,10 @@
 #include <linux/wakelock.h>
 #endif
 
+#if defined(CONFIG_SEC_DEBUG)
+#include <linux/sec_debug.h>
+#endif
+
 #define CREATE_MASK(NUM_BITS, POS) \
 	((unsigned char) (((1 << (NUM_BITS)) - 1) << (POS)))
 #define PON_MASK(MSB_BIT, LSB_BIT) \
@@ -920,6 +924,18 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 		return rc;
 	}
 
+#ifdef CONFIG_SEC_DEBUG
+	/* Configure reset type:
+	 * Debug level MID/HIGH: WARM Reset
+	 * Debug level LOW: HARD Reset
+	 */
+	if (sec_debug_is_enabled()) {
+		cfg->s2_type = 1;
+	} else {
+		cfg->s2_type = 8;
+	}
+#endif
+
 	rc = qpnp_pon_masked_write(pon, cfg->s2_cntl_addr,
 				QPNP_PON_S2_CNTL_TYPE_MASK, (u8)cfg->s2_type);
 	if (rc) {
@@ -938,10 +954,12 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 	return 0;
 }
 
-#if defined (CONFIG_WAKELOCK_ON_PWRKEY_PRESS)
+#if defined (CONFIG_MACH_SAMSUNG)
 static int qpnp_pon_kpdpwr_force_scan(void)
 {
-#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+#if defined (CONFIG_SEC_DEBUG)
+	return sec_debug_is_enabled();
+#elif defined (CONFIG_WAKELOCK_ON_PWRKEY_PRESS)
 	return 1;
 #else
 	return 0;
@@ -956,7 +974,7 @@ qpnp_pon_request_irqs(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 
 	switch (cfg->pon_type) {
 	case PON_KPDPWR:
-#if defined (CONFIG_WAKELOCK_ON_PWRKEY_PRESS)
+#if defined (CONFIG_MACH_SAMSUNG)
 		if (qpnp_pon_kpdpwr_force_scan()) {
 			rc = qpnp_pon_input_dispatch(pon, PON_KPDPWR);
 			if (rc)

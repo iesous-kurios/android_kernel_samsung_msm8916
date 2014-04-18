@@ -40,6 +40,10 @@
 #include <asm/setup.h>
 #include <asm-generic/io-64-nonatomic-lo-hi.h>
 
+#ifdef CONFIG_SEC_DEBUG
+#include <linux/sec_debug.h>
+#endif
+
 #include "peripheral-loader.h"
 
 #define pil_err(desc, fmt, ...)						\
@@ -381,6 +385,11 @@ static int pil_alloc_region(struct pil_priv *priv, phys_addr_t min_addr,
 	if (region == NULL) {
 		pil_err(priv->desc, "Failed to allocate relocatable region of size %zx\n",
 					size);
+#ifdef CONFIG_SEC_DEBUG
+		/*Need ramdump on exact alloc failure case for venus*/
+		if (sec_debug_is_enabled())
+			BUG_ON(!strcmp(priv->desc->name, "venus"));
+#endif
 		return -ENOMEM;
 	}
 

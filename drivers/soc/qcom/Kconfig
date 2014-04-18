@@ -563,4 +563,18 @@ config MSM_PERFORMANCE
 
 source "drivers/soc/qcom/memshare/Kconfig"
 
+config SEC_DEBUG
+	bool "Samsung TN Ramdump Feature"
+	depends on MACH_SAMSUNG
+	default n
+	help
+	  Samsung TN Ramdump Feature.
+	  Enables collection of ram dump.
+	  Enables task history, debug level etc.
+	  This feature is enabled in defconfig.
+
+if SEC_DEBUG
+source "drivers/soc/qcom/samsung/Kconfig"
+endif
+
 endif # ARCH_MSM

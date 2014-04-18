@@ -24,6 +24,10 @@
 
 #include <soc/qcom/scm.h>
 
+#ifdef CONFIG_SEC_DEBUG
+#include <linux/sec_debug.h>
+#endif
+
 #define SCM_ENOMEM		-5
 #define SCM_EOPNOTSUPP		-4
 #define SCM_EINVAL_ADDR		-3
@@ -281,9 +285,18 @@ static int scm_call_common(u32 svc_id, u32 cmd_id, const void *cmd_buf,
 	if (cmd_buf)
 		memcpy(scm_get_command_buffer(scm_buf), cmd_buf, cmd_len);
 
+#ifdef CONFIG_SEC_DEBUG
+	sec_debug_secure_log(svc_id, cmd_id);
+#endif
+
 	mutex_lock(&scm_lock);
 	ret = __scm_call(scm_buf);
 	mutex_unlock(&scm_lock);
+
+#ifdef CONFIG_SEC_DEBUG	
+	sec_debug_secure_log(svc_id, cmd_id);
+#endif
+
 	if (ret)
 		return ret;
 
