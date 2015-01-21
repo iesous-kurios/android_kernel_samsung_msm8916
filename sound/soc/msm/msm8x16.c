@@ -2735,11 +2735,11 @@ static int msm8x16_asoc_machine_probe(struct platform_device *pdev)
 
 	return 0;
 err:
-	devm_kfree(&pdev->dev, pdata);
 	if (pdata->vaddr_gpio_mux_spkr_ctl)
 		iounmap(pdata->vaddr_gpio_mux_spkr_ctl);
 	if (pdata->vaddr_gpio_mux_mic_ctl)
 		iounmap(pdata->vaddr_gpio_mux_mic_ctl);
+	devm_kfree(&pdev->dev, pdata);
 	return ret;
 }
 
