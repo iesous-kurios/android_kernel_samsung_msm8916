@@ -230,7 +230,7 @@ retry:
 	if (res)
 		goto out;
 
-	memzero_explicit(raw_key, sizeof(raw_key));
+	memset(raw_key, 0, sizeof(raw_key));
 	if (cmpxchg(&fi->i_crypt_info, NULL, crypt_info) != NULL) {
 		f2fs_free_crypt_info(crypt_info);
 		goto retry;
@@ -242,7 +242,7 @@ out:
 		res = 0;
 
 	f2fs_free_crypt_info(crypt_info);
-	memzero_explicit(raw_key, sizeof(raw_key));
+	memset(raw_key, 0, sizeof(raw_key));
 	return res;
 }
 
