@@ -73,6 +73,13 @@ obj-$(CONFIG_SENSORS_MPU6050)		+= mpu6050.o
 obj-$(CONFIG_SENSORS_AKM8963)		+= akm8963.o
 obj-$(CONFIG_SENSORS_AKM09911)		+= akm09911.o
 obj-$(CONFIG_SENSORS_LIS3DH)		+= lis3dh_acc.o
+obj-$(CONFIG_SENSORS_HALL)		+= hall_ic.o
+obj-$(CONFIG_SENSORS_K2HH)		+= k2hh.o
+obj-$(CONFIG_SENSORS_TCS3490)		+= tcs3490.o
+obj-$(CONFIG_SENSORS_CM3323)		+= cm3323.o
+obj-$(CONFIG_SENSORS_SX9500_WIFI)	+=sx9500_wifi.o
+obj-$(CONFIG_SAMSUNG_JACK)		+= sec_jack.o
+
 obj-$(CONFIG_SENSORS_BMA2X2)	+= bstclass.o
 
 obj-$(CONFIG_SENSORS_BMA2X2)	+= bma2x2.o

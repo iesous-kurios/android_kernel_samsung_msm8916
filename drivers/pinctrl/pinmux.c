@@ -110,12 +110,14 @@ static int pin_request(struct pinctrl_dev *pctldev,
 
 		desc->gpio_owner = owner;
 	} else {
+#ifndef CONFIG_MSMB_CAMERA_SAMSUNG
 		if (desc->mux_usecount && strcmp(desc->mux_owner, owner)) {
 			dev_err(pctldev->dev,
 				"pin %s already requested by %s; cannot claim for %s\n",
 				desc->name, desc->mux_owner, owner);
 			goto out;
 		}
+#endif
 
 		desc->mux_usecount++;
 		if (desc->mux_usecount > 1)

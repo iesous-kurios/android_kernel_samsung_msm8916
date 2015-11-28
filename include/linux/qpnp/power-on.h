@@ -15,6 +15,8 @@
 
 #include <linux/errno.h>
 
+extern struct class *sec_class;
+
 /**
  * enum pon_trigger_source: List of PON trigger sources
  * %PON_SMPL:		PON triggered by SMPL - Sudden Momentary Power Loss
@@ -61,6 +63,9 @@ int qpnp_pon_trigger_config(enum pon_trigger_source pon_src, bool enable);
 int qpnp_pon_wd_config(bool enable);
 int qpnp_pon_set_restart_reason(enum pon_restart_reason reason);
 bool qpnp_pon_check_hard_reset_stored(void);
+#if defined(CONFIG_QPNP_RESIN)
+int qpnp_resin_state(void);
+#endif
 
 #else
 static int qpnp_pon_system_pwr_off(enum pon_power_off_type type)
@@ -85,6 +90,13 @@ static inline bool qpnp_pon_check_hard_reset_stored(void)
 {
 	return false;
 }
+#if defined(CONFIG_QPNP_RESIN)
+static inline int qpnp_resin_state(void)
+{
+	return -ENODEV;
+}
+#endif
+
 #endif
 
 #endif

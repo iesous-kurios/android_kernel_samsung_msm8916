@@ -1,0 +1,43 @@
+# Samsung configuration options
+
+config MACH_SAMSUNG
+	bool "Samsung device"
+	depends on ARCH_MSM
+	help
+	  Support for Samsung products
+
+config EXTEND_SERIAL_NUM_16
+	bool "Extended serial number (16 digits)"
+	default n
+
+config SEC_FACTORY
+	bool "when it comes to sec factory mode"
+	default n
+	help
+	  It will support a sec factory mode
+
+config SAMSUNG_PRODUCT_SHIP
+        bool "set up for product shipping"
+        default n
+
+menu "Samsung project family selection"
+
+config SEC_GT58_PROJECT
+	bool "Samsung GT5 8 Project"
+	depends on ARCH_MSM8916
+	select MACH_SAMSUNG
+	help
+	  Support for Samsung GT5 8 Project
+
+endmenu
+
+menu "Samsung board selection"
+
+config MACH_GT58WIFI_EUR_OPEN
+	bool "Samsung GT5 8 WIFI EUR Open"
+	depends on SEC_GT58_PROJECT
+	help
+	  Support for Samsung GT5 8 WIFI EUR Open device.
+
+endmenu
+
