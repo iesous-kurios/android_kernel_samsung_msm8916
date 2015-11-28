@@ -1419,12 +1419,24 @@ do_send:
 		rx_byte = 4;
 	} else {
 		short_response = 0;
+#if defined (CONFIG_MACH_SAMSUNG)
+		data_byte = 8; /* first read */
+		/*
+		 * add extra 2 padding bytes to have overall
+		 * packet size is multipe by 4. This also make
+		 * sure 4 bytes dcs headerlocates within a
+		 * 32 bits register after shift in.
+		 */
+		pkt_size = data_byte + 2;
+		rx_byte = data_byte + 8; /* 4 header + 2 crc  + 2 padding*/
+#else
 		data_byte = 10;	/* first read */
 		if (rlen < data_byte)
 			pkt_size = rlen;
 		else
 			pkt_size = data_byte;
 		rx_byte = data_byte + 6; /* 4 header + 2 crc */
+#endif
 	}
 
 

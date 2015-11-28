@@ -543,6 +543,8 @@ config MSM_BCL_PERIPHERAL_CTL
 	  provides routines to configure and monitor the BCL
 	  PMIC peripheral.
 
+source "drivers/power/samsung/Kconfig"
+
 source "drivers/power/reset/Kconfig"
 
 endif # POWER_SUPPLY

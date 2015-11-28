@@ -314,6 +314,13 @@ struct fsg_common {
 	 */
 	char inquiry_string[8 + 16 + 4 + 1];
 
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	char vendor_string[8 + 1];
+	char product_string[16 + 1];
+	/* Additional image version info for SUA */
+	char version_string[100 + 1];
+#endif
+
 	struct kref		ref;
 };
 
@@ -354,6 +361,61 @@ struct fsg_dev {
 	struct usb_ep		*bulk_in;
 	struct usb_ep		*bulk_out;
 };
+
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+static int send_message(struct fsg_common *common, char *msg)
+{
+	char name_buf[120];
+	char state_buf[120];
+	char *envp[3];
+	int env_offset = 0;
+	struct usb_gadget *gadget = common->gadget;
+
+	DBG(common, "%s called\n", __func__);
+	printk(KERN_INFO "%s (%s)\n", __func__, msg);
+
+	if (gadget) {
+		snprintf(name_buf, sizeof(name_buf),
+					"SWITCH_NAME=USB_MESSAGE");
+		envp[env_offset++] = name_buf;
+
+		snprintf(state_buf, sizeof(state_buf),
+				"SWITCH_STATE=%s", msg);
+		envp[env_offset++] = state_buf;
+
+		envp[env_offset] = NULL;
+
+		if (!gadget->dev.class) {
+			gadget->dev.class = class_create(THIS_MODULE,
+					"usb_msg");
+			if (IS_ERR(gadget->dev.class))
+				return -1;
+		}
+
+		DBG(common, "Send cd eject message to daemon\n");
+
+		kobject_uevent_env(&gadget->dev.kobj, KOBJ_CHANGE, envp);
+	}
+
+	return 0;
+}
+
+static int do_timer_stop(struct fsg_common *common)
+{
+	printk(KERN_INFO "%s called\n", __func__);
+	send_message(common, "time stop");
+
+	return 0;
+}
+
+static int do_timer_reset(struct fsg_common *common)
+{
+	printk(KERN_INFO "%s called\n", __func__);
+	send_message(common, "time reset");
+
+	return 0;
+}
+#endif /* CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE */
 
 static inline int __fsg_is_set(struct fsg_common *common,
 			       const char *func, unsigned line)
@@ -1192,6 +1254,9 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
 {
 	struct fsg_lun *curlun = common->curlun;
 	u8	*buf = (u8 *) bh->buf;
+#if defined(CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE)
+	static char new_product_name[16 + 1];
+#endif
 
 	if (!curlun) {		/* Unsupported LUNs are okay */
 		common->bad_lun_okay = 1;
@@ -1209,6 +1274,24 @@ static int do_inquiry(struct fsg_common *common, struct fsg_buffhd *bh)
 	buf[5] = 0;		/* No special options */
 	buf[6] = 0;
 	buf[7] = 0;
+
+#if defined(CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE)
+	strncpy(new_product_name, common->product_string, 16);
+	new_product_name[16] = '\0';
+	if (strlen(common->product_string) <= 11 &&
+			/* check string length */
+			common->lun > 0) {
+		strncat(new_product_name, " Card", 16);
+		new_product_name[16] = '\0';
+	}
+
+	snprintf(common->inquiry_string,
+		sizeof common->inquiry_string,
+		"%-8s%-16s%04x",
+		common->vendor_string,
+		new_product_name, 1);
+#endif
+
 	memcpy(buf + 8, common->inquiry_string, sizeof common->inquiry_string);
 	return 36;
 }
@@ -1402,6 +1485,20 @@ static int do_mode_sense(struct fsg_common *common, struct fsg_buffhd *bh)
 		buf += 12;
 	}
 
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	else if (page_code == 0x2A) {
+		valid_page = 1;
+		buf[0] = 0x2A;		/* Page code */
+		buf[1] = 26;		/* Page length */
+		memset(buf+2, 0,26);/* None of the fields are changeable */
+		buf[2] = 0x02;
+		buf[3] = 0x02;
+		buf[4] = 0x04;
+		buf[6] = 0x28;
+		buf += 28;
+	 }
+#endif
+
 	/*
 	 * Check that a valid page was requested and the mode data length
 	 * isn't too long.
@@ -1444,6 +1541,10 @@ static int do_start_stop(struct fsg_common *common)
 	 * available for use as soon as it is loaded.
 	 */
 	if (start) {
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+		if (loej)
+			send_message(common, "Load AT");
+#endif
 		if (!fsg_lun_is_open(curlun)) {
 			curlun->sense_data = SS_MEDIUM_NOT_PRESENT;
 			return -EINVAL;
@@ -1466,6 +1567,10 @@ static int do_start_stop(struct fsg_common *common)
 	fsg_lun_close(curlun);
 	up_write(&common->filesem);
 	down_read(&common->filesem);
+
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	send_message(common, "Load User");
+#endif
 
 	return 0;
 }
@@ -2185,6 +2290,15 @@ static int do_scsi_command(struct fsg_common *common)
 		if (reply == 0)
 			reply = do_write(common);
 		break;
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	case RELEASE:	/* SUA Timer Stop : 0x17 */
+		reply = do_timer_stop(common);
+		break;
+
+	case RESERVE:	/* SUA Timer Reset : 0x16 */
+		reply = do_timer_reset(common);
+		break;
+#endif
 
 	/*
 	 * Some mandatory commands that we recognize but don't implement.
@@ -2193,8 +2307,10 @@ static int do_scsi_command(struct fsg_common *common)
 	 * of Posix locks.
 	 */
 	case FORMAT_UNIT:
+#ifndef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	case RELEASE:
 	case RESERVE:
+#endif
 	case SEND_DIAGNOSTIC:
 		/* Fall through */
 
@@ -2801,7 +2917,11 @@ static int create_lun_device(struct fsg_common *common,
 
 	for (i = add_lun_index; i < nluns; ++i, ++curlun, ++lcfg) {
 		curlun->cdrom = !!lcfg->cdrom;
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+		curlun->ro = lcfg->ro;
+#else
 		curlun->ro = lcfg->cdrom || lcfg->ro;
+#endif
 		curlun->initially_ro = curlun->ro;
 		curlun->removable = lcfg->removable;
 		curlun->nofua = lcfg->nofua;
@@ -2956,6 +3076,15 @@ buffhds_first_it:
 				     ? "File-Stor Gadget"
 				     : "File-CD Gadget"),
 		 i);
+
+#ifdef	CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	/* Default INQUIRY strings */
+	strncpy(common->vendor_string, "SAMSUNG",
+			sizeof(common->vendor_string) - 1);
+	strncpy(common->product_string, "File-Stor Gadget",
+			sizeof(common->product_string) - 1);
+	common->product_string[16] = '\0';
+#endif
 
 	/*
 	 * Some peripheral controllers are known not to be able to

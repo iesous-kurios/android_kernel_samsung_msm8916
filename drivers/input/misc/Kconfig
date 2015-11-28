@@ -830,5 +830,136 @@ config SENSORS_BMI058
 	 If you say yes here, you get support for Bosch Sensortec's
 	 sensor driver of BMI058.
 
+config SENSORS_HALL
+	bool "HALL"
+	depends on KEYBOARD_GPIO
+	default n
+	help
+	Say Y here to enable the HALL
+
+config SENSORS_K2HH
+	depends on I2C
+	tristate "SENSORS_K2HH"
+	default n
+	help
+	  Say Y here if you use SENSORS_K2HH.
+	  This option enables accelerometer sensors using
+	  STMicroelectronic K2HH device driver.
+
+config SENSORS_K2HH_VDD
+	depends on SENSORS_K2HH
+	tristate "SENSORS_K2HH_VDD"
+	default n
+	help
+	  Say Y here if you use SENSORS_K2HH.
+	  This option enables accelerometer sensors using
+	  STMicroelectronic K2HH device driver with VDD control.
+
+config SENSORS_CM3323
+	depends on I2C
+	tristate "CM3323 driver"
+	default n
+	help
+	  Say Y here if you use cm3323.
+	  This option enables RGB sensors using
+	  Capella cm3323 device driver.
+
+	  Say N here if you do not use cm3323.
+
+config SENSORS_TCS3490
+	depends on I2C
+	tristate "TCS3490 driver"
+	default n
+	help
+	  This option enables light sensor using TCS3490 driver.
+
+config SENSORS_SX9500_WIFI
+	depends on I2C
+	tristate "SX9500 driver for wifi"
+	default n
+	help
+	  Say Y here if you use sx9500 for wifi.
+	  This option enables grip sensors using
+	  SemTech sx9500 device driver for wifi.
+
+	  Say N here if you do not use sx9500 for wifi.
+
+config SENSORS_SX9500_WIFI_INIT_TOUCH_THRESHOLD
+	int "SX9500 wifi Grip sensor threshold for init touch"
+	depends on SENSORS_SX9500_WIFI
+	default "3000"
+	help
+	  This value is the standard of init touch using
+	  SemTech sx9500 device driver for wifi.
+
+config SENSORS_SX9500_WIFI_NORMAL_TOUCH_THRESHOLD
+	int "SX9500 wifi Grip sensor threshold for normal touch"
+	depends on SENSORS_SX9500_WIFI
+	default "17"
+	help
+	  This value is the standard of normal touch using
+	  SemTech sx9500 device driver for wifi.
+
+config SENSORS_SX9500_WIFI_DEFENCE_CODE_FOR_TA_NOISE
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor wifi defence code for TA noise"
+	default n
+	help
+	  Say Y here if you use defence code for TA noise.
+	  This option enables grip sensors using
+	  defence code for TA noise.
+
+config SENSORS_SX9500_WIFI_TEMPERATURE_COMPENSATION
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor temperature compensation"
+	default n
+	help
+	  Say Y here if you use temperature compensation code.
+	  This option enables grip sensors using
+	  temperature compensation code.
+
+config SENSORS_SX9500_WIFI_REGULATOR_ONOFF
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor Regulator"
+	default n
+	help
+	  Say Y here if you use regulator for grip sensor for WIFI.
+	  This option enables regulator for grip sensor using
+	  SemTech sx9500 device driver for WIFI.
+
+config CHARGER_NOTIFY_SENSOR
+	tristate "Nofity sensor when charging"
+	default n
+	help
+	  Say Y here if you need to know the status if charging or not.
+
+config SAMSUNG_JACK
+	bool "3.5 PI Jack driver for Samsung devices"
+	depends on INPUT
+	default n
+	help
+	 This is 3.5 PI JACK driver for Samsung devies.
+	 sec_jack from samsung driver used for samsung devices.
+
+	 To samsung jack is reviewed and supported in all the
+	 samsung devices.
+
+config EARJACK_ADC_SYSFS
+	depends on SAMSUNG_JACK
+	bool "EarJack & BTN adc sysfs"
+	default n
+	help
+	This is sysfs for sec_jack driver jack type and
+	btn type adc values.
+
+config DYNAMIC_MICBIAS_CONTROL
+	depends on SAMSUNG_JACK
+	bool "Earjack micbias dynamic control for reduce current consumption"
+	default n
+	help
+	 This is earjack micbias control for reduce current consumption.
+	 When mic does not used or button is released,
+	 micbias set to low voltage.
+
 endif
 

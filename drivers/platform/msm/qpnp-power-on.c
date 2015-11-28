@@ -25,6 +25,10 @@
 #include <linux/log2.h>
 #include <linux/qpnp/power-on.h>
 
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+#include <linux/wakelock.h>
+#endif
+
 #define CREATE_MASK(NUM_BITS, POS) \
 	((unsigned char) (((1 << (NUM_BITS)) - 1) << (POS)))
 #define PON_MASK(MSB_BIT, LSB_BIT) \
@@ -153,9 +157,15 @@ struct qpnp_pon {
 	struct input_dev *pon_input;
 	struct qpnp_pon_config *pon_cfg;
 	int num_pon_config;
+#if defined(CONFIG_QPNP_RESIN)
+	int resin_state;
+#endif
 	u16 base;
 	struct delayed_work bark_work;
 	u32 dbc;
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+	struct wake_lock wakelock;
+#endif
 	int pon_trigger_reason;
 	int pon_power_off_reason;
 	u32 uvlo;
@@ -536,6 +546,18 @@ static int qpnp_pon_store_and_clear_warm_reset(struct qpnp_pon *pon)
 	return 0;
 }
 
+#if defined(CONFIG_QPNP_RESIN)
+int qpnp_resin_state(void)
+{
+	struct qpnp_pon *pon = sys_reset_dev;
+	if (!pon)
+		return -EPROBE_DEFER;
+
+	return pon->resin_state;
+}
+EXPORT_SYMBOL(qpnp_resin_state);
+#endif
+
 static struct qpnp_pon_config *
 qpnp_get_cfg(struct qpnp_pon *pon, u32 pon_type)
 {
@@ -594,6 +616,18 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 					cfg->key_code, pon_rt_sts);
 	key_status = pon_rt_sts & pon_rt_bit;
 
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+	if (cfg->pon_type == PON_KPDPWR) {
+	       if (key_status) {
+			wake_lock(&pon->wakelock);
+			pr_debug("++ kpdpwr wake lock\n");
+		} else {
+			wake_unlock(&pon->wakelock);
+			pr_debug("-- kpdpwr wake unlock\n");
+		}
+	}
+#endif
+
 	/* simulate press event in case release event occured
 	 * without a press event
 	 */
@@ -606,6 +640,15 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 	input_sync(pon->pon_input);
 
 	cfg->old_state = !!key_status;
+
+#if defined(CONFIG_QPNP_RESIN)
+	/* RESIN is used for VOL DOWN key, it should report the keycode for kernel panic */
+	if((cfg->key_code == 114) && (pon_rt_sts & pon_rt_bit)){
+		pon->resin_state = 1;
+	}else if((cfg->key_code == 114) && !(pon_rt_sts & pon_rt_bit)){
+		pon->resin_state = 0;
+	}
+#endif
 
 	return 0;
 }
@@ -895,6 +938,17 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 	return 0;
 }
 
+#if defined (CONFIG_WAKELOCK_ON_PWRKEY_PRESS)
+static int qpnp_pon_kpdpwr_force_scan(void)
+{
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+	return 1;
+#else
+	return 0;
+#endif
+}
+#endif
+
 static int
 qpnp_pon_request_irqs(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 {
@@ -902,6 +956,13 @@ qpnp_pon_request_irqs(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 
 	switch (cfg->pon_type) {
 	case PON_KPDPWR:
+#if defined (CONFIG_WAKELOCK_ON_PWRKEY_PRESS)
+		if (qpnp_pon_kpdpwr_force_scan()) {
+			rc = qpnp_pon_input_dispatch(pon, PON_KPDPWR);
+			if (rc)
+				dev_err(&pon->spmi->dev, "PON_KPDPWR input dispatch failed!\n");
+		}
+#endif
 		rc = devm_request_irq(&pon->spmi->dev, cfg->state_irq,
 							qpnp_kpdpwr_irq,
 				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
@@ -1293,6 +1354,10 @@ static int qpnp_pon_config_init(struct qpnp_pon *pon)
 			goto free_input_dev;
 		}
 	}
+
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+	wake_lock_init(&pon->wakelock, WAKE_LOCK_SUSPEND, "kpdpwr");
+#endif
 
 	for (i = 0; i < pon->num_pon_config; i++) {
 		cfg = &pon->pon_cfg[i];
@@ -1691,6 +1756,10 @@ static int qpnp_pon_probe(struct spmi_device *spmi)
 static int qpnp_pon_remove(struct spmi_device *spmi)
 {
 	struct qpnp_pon *pon = dev_get_drvdata(&spmi->dev);
+
+#ifdef CONFIG_WAKELOCK_ON_PWRKEY_PRESS
+	wake_lock_init(&pon->wakelock, WAKE_LOCK_SUSPEND, "kpdpwr");
+#endif
 
 	device_remove_file(&spmi->dev, &dev_attr_debounce_us);
 

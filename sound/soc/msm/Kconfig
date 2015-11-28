@@ -131,6 +131,24 @@ config QTI_PP
 	 tuning parameters of various modules such as equalizer,
 	 customized mixing.
 
+config SAMSUNG_AUDIO
+	tristate "Samsung audio support"
+	depends on SND_SOC_MSM_QDSP6V2_INTF
+	help
+	 To add support for samsung audio solution
+
+config AUDIO_SPEAKER_OUT_NXP_AMP_ENABLE
+	tristate "NXP amp support"
+	default n
+	help
+	 To add support for speaker NXP amp
+
+config AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE
+	tristate "samsung audio use external LDO bias for seconardy mic bias"
+	default n
+	help
+	 To add support for external mic bias
+
 config SND_SOC_CPE
 	tristate "CPE drivers"
 	depends on SND_SOC_WCD_CPE
@@ -258,7 +276,7 @@ config SND_SOC_MSM8X16
 	select SND_DYNAMIC_MINORS
 	select QTI_PP
 	select DTS_SRS_TM
-	select DOLBY_DAP
+	select DOLBY_DAP if !SAMSUNG_AUDIO
 	select DOLBY_DS2
 	select MSM_QDSP6_APRV3
 	select MSM_QDSP6V2_CODECS

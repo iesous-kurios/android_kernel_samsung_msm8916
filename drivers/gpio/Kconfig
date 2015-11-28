@@ -717,6 +717,13 @@ config GPIO_QPNP_PIN_DEBUG
 	  Say 'y' here to include debug support for the Qualcomm
 	  QPNP gpio driver.
 
+config SEC_GPIO_SETTINGS
+	bool "Samsung centralized gpio settings"
+	default n
+	---help---
+	  Use this driver to configure active,
+	  suspend settings of gpios
+
 comment "USB GPIO expanders:"
 
 config GPIO_VIPERBOARD

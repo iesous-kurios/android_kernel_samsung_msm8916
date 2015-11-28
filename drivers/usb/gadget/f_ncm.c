@@ -813,7 +813,11 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		if (alt > 1)
 			goto fail;
 
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+		if (alt > 0 && ncm->port.in_ep->driver_data) {
+#else
 		if (ncm->port.in_ep->driver_data) {
+#endif
 			DBG(cdev, "reset ncm\n");
 			gether_disconnect(&ncm->port);
 			ncm_reset_values(ncm);
@@ -853,9 +857,11 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 				return PTR_ERR(net);
 		}
 
+#ifndef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 		spin_lock(&ncm->lock);
 		ncm_notify(ncm);
 		spin_unlock(&ncm->lock);
+#endif
 	} else
 		goto fail;
 
@@ -1340,7 +1346,11 @@ int ncm_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN],
 	ncm->port.ioport = dev;
 	ncm->port.is_fixed = true;
 
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	ncm->port.func.name = "ncm";
+#else
 	ncm->port.func.name = "cdc_network";
+#endif
 	ncm->port.func.strings = ncm_strings;
 	/* descriptors are per-instance copies */
 	ncm->port.func.bind = ncm_bind;

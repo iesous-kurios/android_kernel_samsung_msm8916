@@ -736,8 +736,7 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 		req->length = 0;
 		in = dev->port_usb->in_ep;
 
-		/* Do not process further if no_interrupt is set */
-		if (!req->no_interrupt && !list_empty(&dev->tx_reqs)) {
+		if (!list_empty(&dev->tx_reqs)) {
 			new_req = container_of(dev->tx_reqs.next,
 					struct usb_request, list);
 			list_del(&new_req->list);
@@ -775,6 +774,7 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 					new_req->no_interrupt = 1;
 				}
 				spin_unlock(&dev->req_lock);
+
 				new_req->length = length;
 				retval = usb_ep_queue(in, new_req, GFP_ATOMIC);
 				switch (retval) {
@@ -1631,13 +1631,19 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g, u8 ethaddr[ETH_ALEN],
 	if (get_ether_addr(dev_addr, net->dev_addr))
 		dev_warn(&g->dev,
 			"using random %s ethernet address\n", "self");
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	if (ethaddr != NULL) {
+		memcpy(dev->host_mac, ethaddr, ETH_ALEN);
+		printk(KERN_DEBUG "usb: set unique host mac\n");
+	}
+#else
 	if (get_ether_addr(host_addr, dev->host_mac))
 		dev_warn(&g->dev,
 			"using random %s ethernet address\n", "host");
 
 	if (ethaddr)
 		memcpy(ethaddr, dev->host_mac, ETH_ALEN);
-
+#endif
 	net->netdev_ops = &eth_netdev_ops;
 
 	SET_ETHTOOL_OPS(net, &ops);
