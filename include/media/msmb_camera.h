@@ -1,3 +1,7 @@
+#ifdef CONFIG_MSMB_CAMERA_SAMSUNG
+#include <media/msmb_camera_sec.h>
+#else
+
 #ifndef __LINUX_MSMB_CAMERA_H
 #define __LINUX_MSMB_CAMERA_H
 
@@ -202,3 +206,4 @@ struct msm_camera_smmu_attach_type {
 };
 
 #endif /* __LINUX_MSMB_CAMERA_H */
+#endif /* CONFIG_MSMB_CAMERA_SAMSUNG */

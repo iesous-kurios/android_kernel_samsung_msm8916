@@ -1,3 +1,7 @@
+#ifdef CONFIG_MSMB_CAMERA_SAMSUNG
+#include <media/msm_jpeg_sec.h>
+#else
+
 #ifndef __LINUX_MSM_JPEG_H
 #define __LINUX_MSM_JPEG_H
 
@@ -122,3 +126,4 @@ struct msm_jpeg_hw_cmds {
 };
 
 #endif /* __LINUX_MSM_JPEG_H */
+#endif /* CONFIG_MSMB_CAMERA_SAMSUNG */

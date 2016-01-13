@@ -11,6 +11,10 @@
  *
  */
 
+#ifdef CONFIG_MSMB_CAMERA_SAMSUNG
+#include <soc/qcom/camera2_sec.h>
+#else
+
 #ifndef __CAMERA2_H__
 #define __CAMERA2_H__
 
@@ -221,3 +225,4 @@ struct msm_eeprom_board_info {
 };
 
 #endif
+#endif /* CONFIG_MSMB_CAMERA_SAMSUNG */
