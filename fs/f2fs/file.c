@@ -1100,63 +1100,6 @@ out:
 	return ret;
 }
 
-static int f2fs_insert_range(struct inode *inode, loff_t offset, loff_t len)
-{
-	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
-	pgoff_t pg_start, pg_end, delta, nrpages, idx;
-	loff_t new_size;
-	int ret = 0;
-
-	new_size = i_size_read(inode) + len;
-	if (new_size > inode->i_sb->s_maxbytes)
-		return -EFBIG;
-
-	if (offset >= i_size_read(inode))
-		return -EINVAL;
-
-	/* insert range should be aligned to block size of f2fs. */
-	if (offset & (F2FS_BLKSIZE - 1) || len & (F2FS_BLKSIZE - 1))
-		return -EINVAL;
-
-	ret = f2fs_convert_inline_inode(inode);
-	if (ret)
-		return ret;
-
-	f2fs_balance_fs(sbi, true);
-
-	ret = truncate_blocks(inode, i_size_read(inode), true);
-	if (ret)
-		return ret;
-
-	/* write out all dirty pages from offset */
-	ret = filemap_write_and_wait_range(inode->i_mapping, offset, LLONG_MAX);
-	if (ret)
-		return ret;
-
-	truncate_pagecache(inode, 0, offset);
-
-	pg_start = offset >> PAGE_CACHE_SHIFT;
-	pg_end = (offset + len) >> PAGE_CACHE_SHIFT;
-	delta = pg_end - pg_start;
-	nrpages = (i_size_read(inode) + PAGE_SIZE - 1) / PAGE_SIZE;
-
-	for (idx = nrpages - 1; idx >= pg_start && idx != -1; idx--) {
-		f2fs_lock_op(sbi);
-		ret = __exchange_data_block(inode, idx, idx + delta, false);
-		f2fs_unlock_op(sbi);
-		if (ret)
-			break;
-	}
-
-	/* write out all moved pages, if possible */
-	filemap_write_and_wait_range(inode->i_mapping, offset, LLONG_MAX);
-	truncate_pagecache(inode, 0, offset);
-
-	if (!ret)
-		i_size_write(inode, new_size);
-	return ret;
-}
-
 static int expand_inode_data(struct inode *inode, loff_t offset,
 					loff_t len, int mode)
 {
@@ -1231,13 +1174,11 @@ static long f2fs_fallocate(struct file *file, int mode,
 	if (!S_ISREG(inode->i_mode))
 		return -EINVAL;
 
-	if (f2fs_encrypted_inode(inode) &&
-		(mode & (FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_INSERT_RANGE)))
+	if (f2fs_encrypted_inode(inode) && (mode & (FALLOC_FL_COLLAPSE_RANGE)))
 		return -EOPNOTSUPP;
 
 	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |
-			FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE |
-			FALLOC_FL_INSERT_RANGE))
+			FALLOC_FL_COLLAPSE_RANGE | FALLOC_FL_ZERO_RANGE))
 		return -EOPNOTSUPP;
 
 	mutex_lock(&inode->i_mutex);
@@ -1251,8 +1192,6 @@ static long f2fs_fallocate(struct file *file, int mode,
 		ret = f2fs_collapse_range(inode, offset, len);
 	} else if (mode & FALLOC_FL_ZERO_RANGE) {
 		ret = f2fs_zero_range(inode, offset, len, mode);
-	} else if (mode & FALLOC_FL_INSERT_RANGE) {
-		ret = f2fs_insert_range(inode, offset, len);
 	} else {
 		ret = expand_inode_data(inode, offset, len, mode);
 	}
