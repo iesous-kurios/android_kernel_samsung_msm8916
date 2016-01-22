@@ -149,6 +149,11 @@ config AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE
 	help
 	 To add support for external mic bias
 
+config AUDIO_QUAT_I2S_ENABLE
+	tristate "QUAT_I2S feature"
+	help
+	 To add support for quat_i2s
+
 config SND_SOC_CPE
 	tristate "CPE drivers"
 	depends on SND_SOC_WCD_CPE
