@@ -1492,12 +1492,15 @@ static void max77849_chgin_init_work(struct work_struct *work)
 						chgin_init_work.work);
 	int ret;
 
-	pr_info("%s \n", __func__);
-	ret = request_threaded_irq(charger->irq_chgin, NULL,
-			max77849_chgin_irq, 0, "chgin-irq", charger);
-	if (ret < 0) {
-		pr_err("%s: fail to request chgin IRQ: %d: %d\n",
-				__func__, charger->irq_chgin, ret);
+	if (charger->irq_chgin) {
+		ret = request_threaded_irq(charger->irq_chgin, NULL,
+				max77849_chgin_irq, 0, "chgin-irq", charger);
+		if (ret < 0) {
+			pr_err("%s: fail to request chgin IRQ: %d: %d\n",
+					__func__, charger->irq_chgin, ret);
+		}
+	} else {
+		pr_err("%s: chgin IRQ is null\n", __func__);
 	}
 }
 
