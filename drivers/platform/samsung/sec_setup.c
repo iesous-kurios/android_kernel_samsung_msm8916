@@ -15,13 +15,13 @@
 
 
 #include <asm/setup.h>
+#include <asm/system_info.h>
 
 #include <linux/export.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/string.h>
 
-#ifdef CONFIG_MACH_SAMSUNG
 static int __init msm_serialnr_setup(char *p)
 {
 #ifdef CONFIG_EXTEND_SERIAL_NUM_16
@@ -44,4 +44,3 @@ static int __init msm_hw_rev_setup(char *p)
 	return 0;
 }
 early_param("samsung.board_rev", msm_hw_rev_setup);
-#endif
