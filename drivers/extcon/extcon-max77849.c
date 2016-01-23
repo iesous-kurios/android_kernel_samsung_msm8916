@@ -1667,13 +1667,18 @@ static irqreturn_t max77849_muic_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-#define REQUEST_IRQ(_irq, _name)					\
-do {									\
-	ret = request_threaded_irq(_irq, NULL, max77849_muic_irq,	\
-				    0, _name, info);			\
-	if (ret < 0)							\
-		dev_err(info->dev, "Failed to request IRQ #%d: %d\n",	\
-			_irq, ret);					\
+#define REQUEST_IRQ(_irq, _name)						\
+do {										\
+	if (_irq) {								\
+		ret = request_threaded_irq(_irq, NULL, max77849_muic_irq,	\
+					    0, _name, info);			\
+		if (ret < 0) {							\
+			dev_err(info->dev, "Failed to request IRQ #%d: %d\n",	\
+				_irq, ret);					\
+		}								\
+	} else {								\
+			dev_err(info->dev, "Failed to request IRQ\n");		\
+	}									\
 } while (0)
 
 static int max77849_muic_irq_init(struct max77849_muic_info *info)
