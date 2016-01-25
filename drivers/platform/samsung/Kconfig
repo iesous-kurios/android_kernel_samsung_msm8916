@@ -40,4 +40,3 @@ config MACH_GT58WIFI_EUR_OPEN
 	  Support for Samsung GT5 8 WIFI EUR Open device.
 
 endmenu
-

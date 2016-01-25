@@ -866,6 +866,14 @@ config SENSORS_CM3323
 
 	  Say N here if you do not use cm3323.
 
+config SENSORS_GP2A002
+	tristate "GP2A002 proximity sensor support"
+	depends on I2C
+	default n
+	help
+	  If you say yes here you get support for sharp Sensortec's
+	  proximity sensors GP2A002.
+
 config SENSORS_TCS3490
 	depends on I2C
 	tristate "TCS3490 driver"

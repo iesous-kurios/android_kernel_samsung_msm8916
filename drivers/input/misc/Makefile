@@ -77,7 +77,8 @@ obj-$(CONFIG_SENSORS_HALL)		+= hall_ic.o
 obj-$(CONFIG_SENSORS_K2HH)		+= k2hh.o
 obj-$(CONFIG_SENSORS_TCS3490)		+= tcs3490.o
 obj-$(CONFIG_SENSORS_CM3323)		+= cm3323.o
-obj-$(CONFIG_SENSORS_SX9500_WIFI)	+=sx9500_wifi.o
+obj-$(CONFIG_SENSORS_GP2A002)		+= gp2a002.o
+obj-$(CONFIG_SENSORS_SX9500_WIFI)	+= sx9500_wifi.o
 obj-$(CONFIG_SAMSUNG_JACK)		+= sec_jack.o
 
 obj-$(CONFIG_SENSORS_BMA2X2)	+= bstclass.o
