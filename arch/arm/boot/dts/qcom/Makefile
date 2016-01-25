@@ -41,6 +41,8 @@ dtb-$(CONFIG_ARCH_MSM8909) += msm8909-sim.dtb \
 	msm8909-1gb-mtp.dtb
 ifeq ($(CONFIG_SEC_GT58_PROJECT),y)
 dtb-$(CONFIG_MACH_GT58WIFI_EUR_OPEN) += msm8916-gt58wifi.dtb
+else ifeq ($(CONFIG_SEC_ROSSA_PROJECT),y)
+dtb-$(CONFIG_MACH_ROSSA_TMO) += msm8916-rossatmo.dtb
 else
 dtb-$(CONFIG_ARCH_MSM8916) += msm8916-sim.dtb \
 	msm8916-rumi.dtb \

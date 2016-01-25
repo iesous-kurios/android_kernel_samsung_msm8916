@@ -29,6 +29,13 @@ config SEC_GT58_PROJECT
 	help
 	  Support for Samsung GT5 8 Project
 
+config SEC_ROSSA_PROJECT
+	bool "Samsung Rossa Project"
+	depends on ARCH_MSM8916
+	select MACH_SAMSUNG
+	help
+	  Support for Samsung Rossa Project
+
 endmenu
 
 menu "Samsung board selection"
@@ -38,5 +45,11 @@ config MACH_GT58WIFI_EUR_OPEN
 	depends on SEC_GT58_PROJECT
 	help
 	  Support for Samsung GT5 8 WIFI EUR Open device.
+
+config MACH_ROSSA_TMO
+	bool "Samsung Rossa TMO"
+	depends on SEC_ROSSA_PROJECT
+	help
+	  Support for TMO Rossa device.
 
 endmenu
