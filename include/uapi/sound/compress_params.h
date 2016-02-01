@@ -396,6 +396,7 @@ union snd_codec_options {
 	struct snd_dec_vorbis vorbis_dec;
 	struct snd_dec_alac alac;
 	struct snd_dec_ape ape;
+};
 
 /** struct snd_codec_desc - description of codec capabilities
  * @max_ch: Maximum number of audio channels
