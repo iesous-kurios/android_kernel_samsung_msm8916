@@ -543,6 +543,19 @@ int msm_camera_get_dt_power_setting_data(struct device_node *of_node,
 				power_down_setting_t;
 			end--;
 		}
+#if defined(CONFIG_MACH_ROSSA_TMO)
+		for (c = 0; c < size; c ++) {
+			if(power_info->power_down_setting[c].seq_val == SENSOR_GPIO_VDIG)
+			{
+			      int i = c + 1;
+			      power_down_setting_t = power_info->power_down_setting[c];
+			      power_info->power_down_setting[c] = power_info->power_down_setting[i];
+			      power_info->power_down_setting[i] = power_down_setting_t;
+			      power_info->power_down_setting[c].delay = 0;
+			      break;
+			}
+		}
+#endif
 	}
 	return rc;
 ERROR2:
@@ -795,6 +808,27 @@ int msm_camera_init_gpio_pin_tbl(struct device_node *of_node,
 	} else
 		rc = 0;
 
+#if defined(CONFIG_MACH_ROSSA_TMO) || defined(CONFIG_SEC_A8_PROJECT)
+	rc = of_property_read_u32(of_node, "qcom,gpio-vt-reset", &val);
+	if (rc != -EINVAL) {
+		if (rc < 0) {
+			pr_err("%s:%d read qcom,gpio-vt-reset failed rc %d\n",
+				__func__, __LINE__, rc);
+			goto ERROR;
+		} else if (val >= gpio_array_size) {
+			pr_err("%s:%d qcom,gpio-vt-reset invalid %d\n",
+				__func__, __LINE__, val);
+			rc = -EINVAL;
+			goto ERROR;
+		}
+		gconf->gpio_num_info->gpio_num[SENSOR_GPIO_VT_RESET] =
+			gpio_array[val];
+		gconf->gpio_num_info->valid[SENSOR_GPIO_VT_RESET] = 1;
+		CDBG("%s qcom,gpio-vt-reset %d\n", __func__,
+			gconf->gpio_num_info->gpio_num[SENSOR_GPIO_VT_RESET]);
+	} else
+		rc = 0;
+#endif
 	rc = of_property_read_u32(of_node, "qcom,gpio-reset", &val);
 	if (rc != -EINVAL) {
 		if (rc < 0) {

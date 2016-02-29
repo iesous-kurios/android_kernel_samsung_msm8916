@@ -30,6 +30,9 @@ static int table_size;
 #if defined(CONFIG_SR200PC20)
 #include "sr200pc20.h"
 #endif
+#if defined(CONFIG_S5K4ECGX)
+#include "s5k4ecgx.h"
+#endif
 
 /* Logging macro */
 //#define MSM_SENSOR_DRIVER_DEBUG
@@ -42,6 +45,10 @@ static int table_size;
 
 #define SENSOR_MAX_MOUNTANGLE (360)
 
+#ifdef CONFIG_CAM_DISABLE_LPM_MODE
+extern int poweroff_charging;
+#endif
+
 /* Static declaration */
 static struct msm_sensor_ctrl_t *g_sctrl[MAX_CAMERAS];
 
@@ -52,6 +59,15 @@ static struct msm_sensor_fn_t sr200pc20_sensor_func_tbl = {
 	.sensor_power_down = msm_sensor_power_down,
 	.sensor_match_id = msm_sensor_match_id,
 	.sensor_native_control = sr200pc20_sensor_native_control,
+};
+#endif
+#if defined(CONFIG_S5K4ECGX)
+static struct msm_sensor_fn_t s5k4ecgx_sensor_func_tbl = {
+	.sensor_config = s5k4ecgx_sensor_config,
+	.sensor_power_up = msm_sensor_power_up,
+	.sensor_power_down = msm_sensor_power_down,
+	.sensor_match_id = s5k4ecgx_sensor_match_id,
+	.sensor_native_control = s5k4ecgx_sensor_native_control,
 };
 #endif
 
@@ -416,6 +432,11 @@ int32_t msm_sensor_driver_probe(void *setting)
 #if defined(CONFIG_SR200PC20)
 	if(slave_info->camera_id == CAMERA_2){
 		s_ctrl->func_tbl = &sr200pc20_sensor_func_tbl ;
+	}
+#endif
+#if defined(CONFIG_S5K4ECGX)
+	if (slave_info->camera_id == CAMERA_0){
+		s_ctrl->func_tbl = &s5k4ecgx_sensor_func_tbl;
 	}
 #endif
 
@@ -1063,6 +1084,14 @@ static int __init msm_sensor_driver_init(void)
 	int32_t rc = 0;
 
 	CDBG("Enter");
+
+#ifdef CONFIG_CAM_DISABLE_LPM_MODE
+	if(poweroff_charging) {
+		pr_err("%s : Camera is not probed in LPM mode", __func__);
+		return 0;
+	}
+#endif
+
 	rc = platform_driver_probe(&msm_sensor_platform_driver,
 		msm_sensor_driver_platform_probe);
 	if (!rc) {
