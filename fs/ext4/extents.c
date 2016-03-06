@@ -5601,6 +5601,7 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
 	unsigned int credits, ee_len;
 	int ret = 0, depth, split_flag = 0;
 	loff_t ioffset;
+	loff_t oldsize = i_size_read(inode);
 
 	/*
 	 * We need to test this early because xfstests assumes that an
@@ -5663,7 +5664,7 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
 		goto out_mutex;
 	}
 
-	truncate_pagecache(inode, ioffset);
+	truncate_pagecache(inode, oldsize, ioffset);
 
 	/* Wait for existing dio to complete */
 	ext4_inode_block_unlocked_dio(inode);

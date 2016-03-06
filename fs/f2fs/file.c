@@ -1100,10 +1100,7 @@ static int f2fs_insert_range(struct inode *inode, loff_t offset, loff_t len)
 	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
 	pgoff_t pg_start, pg_end, delta, nrpages, idx;
 	loff_t new_size;
-	int ret;
-
-	if (!S_ISREG(inode->i_mode))
-		return -EINVAL;
+	int ret = 0;
 
 	new_size = i_size_read(inode) + len;
 	if (new_size > inode->i_sb->s_maxbytes)
@@ -1116,7 +1113,11 @@ static int f2fs_insert_range(struct inode *inode, loff_t offset, loff_t len)
 	if (offset & (F2FS_BLKSIZE - 1) || len & (F2FS_BLKSIZE - 1))
 		return -EINVAL;
 
-	f2fs_balance_fs(sbi);
+	ret = f2fs_convert_inline_inode(inode);
+	if (ret)
+		return ret;
+
+	f2fs_balance_fs(sbi, true);
 
 	ret = truncate_blocks(inode, i_size_read(inode), true);
 	if (ret)
@@ -1127,7 +1128,7 @@ static int f2fs_insert_range(struct inode *inode, loff_t offset, loff_t len)
 	if (ret)
 		return ret;
 
-	truncate_pagecache(inode, offset);
+	truncate_pagecache(inode, 0, offset);
 
 	pg_start = offset >> PAGE_CACHE_SHIFT;
 	pg_end = (offset + len) >> PAGE_CACHE_SHIFT;
@@ -1135,57 +1136,19 @@ static int f2fs_insert_range(struct inode *inode, loff_t offset, loff_t len)
 	nrpages = (i_size_read(inode) + PAGE_SIZE - 1) / PAGE_SIZE;
 
 	for (idx = nrpages - 1; idx >= pg_start && idx != -1; idx--) {
-		struct dnode_of_data dn;
-		struct page *ipage;
-		block_t new_addr, old_addr;
-
 		f2fs_lock_op(sbi);
-
-		set_new_dnode(&dn, inode, NULL, NULL, 0);
-		ret = get_dnode_of_data(&dn, idx, LOOKUP_NODE_RA);
-		if (ret && ret != -ENOENT) {
-			goto out;
-		} else if (ret == -ENOENT) {
-			goto next;
-		} else if (dn.data_blkaddr == NULL_ADDR) {
-			f2fs_put_dnode(&dn);
-			goto next;
-		} else {
-			new_addr = dn.data_blkaddr;
-			truncate_data_blocks_range(&dn, 1);
-			f2fs_put_dnode(&dn);
-		}
-
-		ipage = get_node_page(sbi, inode->i_ino);
-		if (IS_ERR(ipage)) {
-			ret = PTR_ERR(ipage);
-			goto out;
-		}
-
-		set_new_dnode(&dn, inode, ipage, NULL, 0);
-		ret = f2fs_reserve_block(&dn, idx + delta);
-		if (ret)
-			goto out;
-
-		old_addr = dn.data_blkaddr;
-		f2fs_bug_on(sbi, old_addr != NEW_ADDR);
-
-		if (new_addr != NEW_ADDR) {
-			struct node_info ni;
-
-			get_node_info(sbi, dn.nid, &ni);
-			f2fs_replace_block(sbi, &dn, old_addr, new_addr,
-							ni.version, true);
-		}
-		f2fs_put_dnode(&dn);
-next:
+		ret = __exchange_data_block(inode, idx, idx + delta, false);
 		f2fs_unlock_op(sbi);
+		if (ret)
+			break;
 	}
 
-	i_size_write(inode, new_size);
-	return 0;
-out:
-	f2fs_unlock_op(sbi);
+	/* write out all moved pages, if possible */
+	filemap_write_and_wait_range(inode->i_mapping, offset, LLONG_MAX);
+	truncate_pagecache(inode, 0, offset);
+
+	if (!ret)
+		i_size_write(inode, new_size);
 	return ret;
 }
 
