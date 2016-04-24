@@ -5870,7 +5870,7 @@ static int sec_battery_probe(struct platform_device *pdev)
 		battery->extcon_cable_list[i].batt_nb.notifier_call = batt_handle_notification;
 		battery->extcon_cable_list[i].cable_index = i;
 		ret = extcon_register_interest(&battery->extcon_cable_list[i].extcon_nb,
-					EXTCON_DEV_NAME,
+					"extcon-muic",
 					extcon_cable_name[i],
 					&battery->extcon_cable_list[i].batt_nb);
 

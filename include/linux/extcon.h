@@ -142,6 +142,11 @@ enum extcon_cable_name {
 
 extern const char *extcon_cable_name[CABLE_NAME_MAX + 1];
 
+#if defined(CONFIG_EXTCON_MAX77849)
+/* added sec common function */
+extern int get_jig_state(void);
+#endif
+
 #endif
 
 struct extcon_cable;
