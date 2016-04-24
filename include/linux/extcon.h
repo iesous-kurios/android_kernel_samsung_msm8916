@@ -27,6 +27,8 @@
 #include <linux/notifier.h>
 #include <linux/sysfs.h>
 
+#ifndef CONFIG_MACH_SAMSUNG
+
 #define SUPPORTED_CABLE_MAX	32
 #define CABLE_NAME_MAX		30
 
@@ -71,6 +73,76 @@ enum extcon_cable_name {
 	EXTCON_MECHANICAL,
 };
 extern const char extcon_cable_name[][CABLE_NAME_MAX + 1];
+
+#else
+
+/*
+ * The standard cable name is to help support general notifier
+ * and notifiee device drivers to share the common names.
+ * Please use standard cable names unless your notifier device has
+ * a very unique and abnormal cable or
+ * the cable type is supposed to be used with only one unique
+ * pair of notifier/notifiee devices.
+ *
+ * Please add any other "standard" cables used with extcon dev.
+ *
+ * You may add a dot and number to specify version or specification
+ * of the specific cable if it is required. (e.g., "Fast-charger.18"
+ * and "Fast-charger.10" for 1.8A and 1.0A chargers)
+ * However, the notifiee and notifier should be able to handle such
+ * string and if the notifiee can negotiate the protocol or identify,
+ * you don't need such convention. This convention is helpful when
+ * notifier can distinguish but notifiee cannot.
+ */
+enum extcon_cable_name {
+	EXTCON_USB = 0,
+	EXTCON_USB_HOST,
+	EXTCON_USB_HOST_5V,
+	EXTCON_HV_PREPARE,
+	EXTCON_TA,
+	EXTCON_HV_TA,
+	EXTCON_HV_TA_ERR,
+	EXTCON_UNDEFINED_CHARGER,
+	EXTCON_CEA936_CHG,
+	EXTCON_CHARGE_DOWNSTREAM,
+#if defined (CONFIG_MUIC_DET_JACK)
+	EXTCON_EARJACK,
+#endif
+	EXTCON_MHL,
+	EXTCON_MHL_VB,
+	EXTCON_DESKDOCK,
+	EXTCON_DESKDOCK_VB,
+	EXTCON_CARDOCK,
+	EXTCON_CARDOCK_VB,
+	EXTCON_AUDIODOCK,
+	EXTCON_SMARTDOCK,
+	EXTCON_SMARTDOCK_TA,
+	EXTCON_SMARTDOCK_USB,
+	EXTCON_JIG_UARTOFF,
+	EXTCON_JIG_UARTOFF_VB,
+	EXTCON_JIG_UARTON,
+	EXTCON_JIG_USBOFF,
+	EXTCON_JIG_USBON,
+	EXTCON_INCOMPATIBLE,
+	EXTCON_CHARGING_CABLE,
+#if defined(CONFIG_MUIC_MAX77804K_SUPPORT_HMT_DETECTION)
+	EXTCON_HMT,
+#endif
+#if defined(CONFIG_MUIC_SUPPORT_LANHUB)
+	EXTCON_LANHUB,
+	EXTCON_LANHUB_TA,
+#endif
+	EXTCON_HV_TA_1A,
+	EXTCON_UNKNOWN,
+	EXTCON_NONE,
+};
+
+#define SUPPORTED_CABLE_MAX	(EXTCON_NONE + 1)
+#define CABLE_NAME_MAX		SUPPORTED_CABLE_MAX
+
+extern const char *extcon_cable_name[CABLE_NAME_MAX + 1];
+
+#endif
 
 struct extcon_cable;
 
