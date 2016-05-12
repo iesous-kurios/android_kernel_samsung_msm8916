@@ -1061,5 +1061,59 @@ config SENSORS_SX9500_SAMPLE_RATE_SET_125KHZ
 	help
 	  Say Y here if you want to set the sample rate to 125KHZ.
 
+config SENSORS_SX9500_WIFI
+	depends on I2C
+	tristate "SX9500 driver for wifi"
+	default n
+	help
+	  Say Y here if you use sx9500 for wifi.
+	  This option enables grip sensors using
+	  SemTech sx9500 device driver for wifi.
+
+	  Say N here if you do not use sx9500 for wifi.
+
+config SENSORS_SX9500_WIFI_INIT_TOUCH_THRESHOLD
+	int "SX9500 wifi Grip sensor threshold for init touch"
+	depends on SENSORS_SX9500_WIFI
+	default "3000"
+	help
+	  This value is the standard of init touch using
+	  SemTech sx9500 device driver for wifi.
+
+config SENSORS_SX9500_WIFI_NORMAL_TOUCH_THRESHOLD
+	int "SX9500 wifi Grip sensor threshold for normal touch"
+	depends on SENSORS_SX9500_WIFI
+	default "17"
+	help
+	  This value is the standard of normal touch using
+	  SemTech sx9500 device driver for wifi.
+
+config SENSORS_SX9500_WIFI_DEFENCE_CODE_FOR_TA_NOISE
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor wifi defence code for TA noise"
+	default n
+	help
+	  Say Y here if you use defence code for TA noise.
+	  This option enables grip sensors using
+	  defence code for TA noise.
+
+config SENSORS_SX9500_WIFI_TEMPERATURE_COMPENSATION
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor temperature compensation"
+	default n
+	help
+	  Say Y here if you use temperature compensation code.
+	  This option enables grip sensors using
+	  temperature compensation code.
+
+config SENSORS_SX9500_WIFI_REGULATOR_ONOFF
+	depends on SENSORS_SX9500_WIFI
+	tristate "SX9500 wifi Grip sensor Regulator"
+	default n
+	help
+	  Say Y here if you use regulator for grip sensor for WIFI.
+	  This option enables regulator for grip sensor using
+	  SemTech sx9500 device driver for WIFI.
+
 endif
 
