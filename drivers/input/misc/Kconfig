@@ -989,5 +989,16 @@ config SENSORS_K2HH_VDD
 	  This option enables accelerometer sensors using
 	  STMicroelectronic K2HH device driver with VDD control.
 
+config SENSORS_CM3323
+	depends on I2C
+	tristate "CM3323 driver"
+	default n
+	help
+	  Say Y here if you use cm3323.
+	  This option enables RGB sensors using
+	  Capella cm3323 device driver.
+
+	  Say N here if you do not use cm3323.
+
 endif
 
