@@ -1115,5 +1115,12 @@ config SENSORS_SX9500_WIFI_REGULATOR_ONOFF
 	  This option enables regulator for grip sensor using
 	  SemTech sx9500 device driver for WIFI.
 
+config SENSORS_TCS3490
+	depends on I2C
+	tristate "TCS3490 driver"
+	default n
+	help
+	  This option enables light sensor using TCS3490 driver.
+
 endif
 
