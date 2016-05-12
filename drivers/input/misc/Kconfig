@@ -971,5 +971,23 @@ config SENSORS_YL_PARAMS
 	  If you say yes here you get support for Yulong/Coolpad's sensor
 	  calibration parameter driver.
 
+config SENSORS_K2HH
+	depends on I2C
+	tristate "SENSORS_K2HH"
+	default n
+	help
+	  Say Y here if you use SENSORS_K2HH.
+	  This option enables accelerometer sensors using
+	  STMicroelectronic K2HH device driver.
+
+config SENSORS_K2HH_VDD
+	depends on SENSORS_K2HH
+	tristate "SENSORS_K2HH_VDD"
+	default n
+	help
+	  Say Y here if you use SENSORS_K2HH.
+	  This option enables accelerometer sensors using
+	  STMicroelectronic K2HH device driver with VDD control.
+
 endif
 
