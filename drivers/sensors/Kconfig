@@ -4,6 +4,12 @@ config SENSORS
 	  This option enables the sensor sysfs class in /sys/class/sensors.
 	  You'll need this to do anything useful with sensorss. If unsure, say N.
 
+config SENSORS_CORE
+	bool "Samsung Sensors Core Class Support"
+	help
+	  This option enables the universal sensor core class. 
+	  You'll need this to do anything useful with sensors. If unsure, say N.
+
 config SENSORS_SSC
 	bool "Enable Sensors Driver Support for SSC"
 	help
