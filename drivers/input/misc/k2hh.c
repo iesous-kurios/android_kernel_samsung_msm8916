@@ -29,6 +29,7 @@
 #include <linux/regulator/consumer.h>
 #include <mach/gpiomux.h>
 
+#include <linux/alarmtimer.h>
 #include <linux/sensor/sensors_core.h>
 
 #define I2C_M_WR                      0 /* for i2c Write */
@@ -131,6 +132,10 @@
 
 #define DYNAMIC_THRESHOLD             5000
 
+#define TIME_LO_MASK 0x00000000FFFFFFFF
+#define TIME_HI_MASK 0xFFFFFFFF00000000
+#define TIME_HI_SHIFT 32
+
 enum {
 	OFF = 0,
 	ON = 1
@@ -187,6 +192,7 @@ struct k2hh_p {
 
 	const char *str_vdd;
 	const char *str_vio;
+	u64 old_timestamp;
 };
 
 #define ACC_ODR10		0x10	/*   10Hz output data rate */
@@ -205,10 +211,8 @@ struct k2hh_acc_odr {
 #define OUTPUT_ALWAYS_ANTI_ALIASED	/* Anti aliasing filter */
 
 const struct k2hh_acc_odr k2hh_acc_odr_table[] = {
-	{  2, ACC_ODR800},
-	{  3, ACC_ODR400},
-	{  5, ACC_ODR200},
-	{ 10, ACC_ODR100},
+	{  5, ACC_ODR800},
+	{  10, ACC_ODR400},
 #ifndef OUTPUT_ALWAYS_ANTI_ALIASED
 	{ 20, ACC_ODR50},
 	{100, ACC_ODR10},
@@ -377,10 +381,8 @@ static int k2hh_set_bw(struct k2hh_p *data)
 
 	buf = (mask & new_range) | ((~mask) & temp);
 	ret += k2hh_i2c_write(data, CTRL4_REG, buf);
-	new_range = K2HH_ACC_BW_50;
-#else
-	new_range = K2HH_ACC_BW_400;
 #endif
+	new_range = K2HH_ACC_BW_400;
 	mask = K2HH_ACC_BW_MASK;
 	ret = k2hh_i2c_read(data, CTRL4_REG, &temp, 1);
 
@@ -483,7 +485,7 @@ static int k2hh_open_calibration(struct k2hh_p *data)
 	old_fs = get_fs();
 	set_fs(KERNEL_DS);
 
-	cal_filp = filp_open(CALIBRATION_FILE_PATH, O_RDONLY, 0666);
+	cal_filp = filp_open(CALIBRATION_FILE_PATH, O_RDONLY, 0);
 	if (IS_ERR(cal_filp)) {
 		set_fs(old_fs);
 		ret = PTR_ERR(cal_filp);
@@ -571,7 +573,7 @@ static int k2hh_do_calibrate(struct k2hh_p *data, int enable)
 	set_fs(KERNEL_DS);
 
 	cal_filp = filp_open(CALIBRATION_FILE_PATH,
-			O_CREAT | O_TRUNC | O_WRONLY, 0666);
+			O_CREAT | O_TRUNC | O_WRONLY, 0660);
 	if (IS_ERR(cal_filp)) {
 		pr_err("[SENSOR]: %s - Can't open calibration file\n",
 			__func__);
@@ -612,6 +614,9 @@ static void k2hh_work_func(struct work_struct *work)
 	int ret;
 	struct k2hh_v acc;
 	struct k2hh_p *data = container_of(work, struct k2hh_p, work);
+	struct timespec ts = ktime_to_timespec(ktime_get_boottime());
+	u64 timestamp_new = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+	int time_hi, time_lo;
 
 	ret = k2hh_read_accel_xyz(data, &acc);
 	if (ret < 0)
@@ -620,11 +625,32 @@ static void k2hh_work_func(struct work_struct *work)
 	data->accdata.x = acc.x - data->caldata.x;
 	data->accdata.y = acc.y - data->caldata.y;
 	data->accdata.z = acc.z - data->caldata.z;
+	if (data->old_timestamp != 0 &&
+		((timestamp_new - data->old_timestamp) > ktime_to_ms(data->poll_delay) * 1800000LL)) {
+		u64 delay = ktime_to_ns(data->poll_delay);
+		u64 shift_timestamp = delay >> 1;
+		u64 timestamp = 0ULL;
+		for (timestamp = data->old_timestamp + delay; timestamp < timestamp_new - shift_timestamp; timestamp+=delay) {
+			time_hi = (int)((timestamp & TIME_HI_MASK) >> TIME_HI_SHIFT);
+			time_lo = (int)(timestamp & TIME_LO_MASK);
+			input_report_rel(data->input, REL_X, data->accdata.x);
+			input_report_rel(data->input, REL_Y, data->accdata.y);
+			input_report_rel(data->input, REL_Z, data->accdata.z);
+			input_report_rel(data->input, REL_DIAL, time_hi);
+			input_report_rel(data->input, REL_MISC, time_lo);
+			input_sync(data->input);
+		}
+	}
 
+	time_hi = (int)((timestamp_new & TIME_HI_MASK) >> TIME_HI_SHIFT);
+	time_lo = (int)(timestamp_new & TIME_LO_MASK);
 	input_report_rel(data->input, REL_X, data->accdata.x);
 	input_report_rel(data->input, REL_Y, data->accdata.y);
 	input_report_rel(data->input, REL_Z, data->accdata.z);
+	input_report_rel(data->input, REL_DIAL, time_hi);
+	input_report_rel(data->input, REL_MISC, time_lo);
 	input_sync(data->input);
+	data->old_timestamp = timestamp_new;
 
 exit:
 	if ((ktime_to_ns(data->poll_delay) * (int64_t)data->time_count)
@@ -667,6 +693,7 @@ static ssize_t k2hh_enable_store(struct device *dev,
 			k2hh_regulator_onoff(data, true);
 #endif
 
+			data->old_timestamp = 0LL;
 			k2hh_open_calibration(data);
 			k2hh_set_range(data, K2HH_RANGE_4G);
 			k2hh_set_bw(data);
@@ -1173,6 +1200,8 @@ static int k2hh_input_init(struct k2hh_p *data)
 	input_set_capability(dev, EV_REL, REL_X);
 	input_set_capability(dev, EV_REL, REL_Y);
 	input_set_capability(dev, EV_REL, REL_Z);
+	input_set_capability(dev, EV_REL, REL_DIAL);
+	input_set_capability(dev, EV_REL, REL_MISC);
 	input_set_drvdata(dev, data);
 
 	ret = input_register_device(dev);
