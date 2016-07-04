@@ -279,6 +279,12 @@ config SAMSUNG_AUDIO
 	help
 	 To add support for samsung audio solution
 
+config AUDIO_SPEAKER_OUT_NXP_AMP_ENABLE
+	tristate "samsung audio speaker NXP amp feature"
+	depends on SAMSUNG_AUDIO
+	help
+	 To add support for speaker NXP amp
+
 config SND_SOC_MSM8909
 	tristate "SoC Machine driver for MSM8909 boards"
 	depends on ARCH_MSM8909
