@@ -308,6 +308,10 @@ struct msm8x16_wcd_priv {
 	enum wcd_mbhc_imp_det_pin imped_det_pin;
 };
 
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+extern void msm8x16_wcd_speaker_boost_force_enable(int enable);
+#endif
+
 extern int msm8x16_wcd_mclk_enable(struct snd_soc_codec *codec, int mclk_enable,
 			     bool dapm);
 

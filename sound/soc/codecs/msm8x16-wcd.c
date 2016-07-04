@@ -4390,6 +4390,19 @@ int msm8x16_wcd_mclk_enable(struct snd_soc_codec *codec,
 	return 0;
 }
 
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+void msm8x16_wcd_speaker_boost_force_enable(int enable)
+{
+	pr_info("%s: enable = %u \n",
+		__func__, enable);
+	if (enable) {
+		msm8x16_wcd_boost_on(registered_codec);
+	} else {
+		msm8x16_wcd_boost_off(registered_codec);
+	}
+}
+#endif
+
 static int msm8x16_wcd_set_dai_sysclk(struct snd_soc_dai *dai,
 		int clk_id, unsigned int freq, int dir)
 {
