@@ -272,6 +272,13 @@ config SND_SOC_MSM8X16
 	 the machine drivers and the corresponding
 	 DAI-links.
 
+config SAMSUNG_AUDIO
+	tristate "samsung audio feature"
+	depends on SND_SOC_MSM8X16
+	depends on MACH_SAMSUNG
+	help
+	 To add support for samsung audio solution
+
 config SND_SOC_MSM8909
 	tristate "SoC Machine driver for MSM8909 boards"
 	depends on ARCH_MSM8909
