@@ -222,6 +222,9 @@ struct msm8916_asoc_mach_data {
 	int lb_mode;
 	u8 micbias1_cap_mode;
 	u8 micbias2_cap_mode;
+#ifdef CONFIG_AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE
+	int mic_bias_gpio;
+#endif /* CONFIG_AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE */
 	atomic_t mclk_rsc_ref;
 	atomic_t mclk_enabled;
 	atomic_t wsa_mclk_rsc_ref;

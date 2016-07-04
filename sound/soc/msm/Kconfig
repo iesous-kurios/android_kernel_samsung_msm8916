@@ -291,6 +291,12 @@ config AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
 	help
 	 To add support for speaker maxim amp
 
+config AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE
+	tristate "samsung audio use external LDO bias for seconardy mic bias"
+	depends on SAMSUNG_AUDIO
+	help
+	 To add support for external mic bias
+
 config SND_SOC_MSM8909
 	tristate "SoC Machine driver for MSM8909 boards"
 	depends on ARCH_MSM8909
