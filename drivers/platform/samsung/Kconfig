@@ -47,11 +47,25 @@ endmenu
 
 menu "Samsung board selection"
 
+config MACH_GT58_EUR_OPEN
+    depends on SEC_GT58_PROJECT
+        default n
+        bool "Samsung GT5 8 LTE EUR Open"
+        help
+          Support for Samsung GT5 8 LTE EUR Open device.
+
 config MACH_GT58WIFI_EUR_OPEN
 	bool "Samsung GT5 8 WIFI EUR Open"
 	depends on SEC_GT58_PROJECT
 	help
 	  Support for Samsung GT5 8 WIFI EUR Open device.
+
+config MACH_GT510_EUR_OPEN
+    depends on SEC_GT510_PROJECT
+        default n
+        bool "Samsung GT5 10 LTE EUR Open"
+        help
+          Support for Samsung GT5 10 LTE EUR Open device.
 
 config MACH_GT510WIFI_EUR_OPEN
 	bool "Samsung GT5 10 WIFI EUR Open"
