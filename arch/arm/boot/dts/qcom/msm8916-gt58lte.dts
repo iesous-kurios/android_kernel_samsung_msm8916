@@ -12,24 +12,13 @@
 
 /dts-v1/;
 
-#include "gt510lte/msm8916-gt510lte-r06.dtsi"
+#include "gt58lte/msm8916-gt58lte.dtsi"
 #include "samsung/msm8916-memory.dtsi"
 
 / {
-	model = "APQ8016 SAMSUNG GT510 WIFI PROJECT REV06";
-	compatible = "qcom,apq8016", "qcom,mtp";
-	qcom,board-id = <0xF708FF01 6>;
-
-	memory {
-		modem_adsp_mem: modem_adsp_region@0 {
-			reg = <0x0 0x86800000 0x0 0x02b00000>;
-		};
-
-		peripheral_mem: pheripheral_region@0 {
-			reg = <0x0 0x89300000 0x0 0x0600000>;
-		};
-	};
-
+	model = "Samsung MSM8916 GT58";
+	compatible = "qcom,msm8916-mtp", "qcom,msm8916", "qcom,mtp";
+	qcom,board-id = <0xCE08FF01 1>;
 };
 
 /*overwrite s2 cpr voltage for model variant*/

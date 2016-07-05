@@ -11,18 +11,16 @@
  */
 
 #include "../samsung/msm8916.dtsi"
-#include "msm8916-pinctrl-gt510lte-r01.dtsi"
-#include "msm8916-camera-sensor-gt510.dtsi"
+#include "msm8916-pinctrl-gt510lte-r07.dtsi"
+#include "msm8916-camera-sensor-gt510-r07.dtsi"
 #include "msm8916-gt510lte-battery-r00.dtsi"
-#include "msm8916-max77849-gt510.dtsi"
-#include "dsi_panel_S6D7AA0_LTL101AT01_LP8556_wxga_video.dtsi"
-#include "dsi_panel_S6D7AA0_BOE_LTL101AT01_LP8556_wxga_video.dtsi"
+#include "msm8916-max77849-gt510-r01.dtsi"
+#include "dsi_panel_S6D7AA0_LTL101AT01_xga_video.dtsi"
 / {
 	aliases {
 		serial0 = &blsp1_uart2;
 		i2c11 = &i2c_11;
 		i2c13 = &i2c_13;
-		i2c35 = &i2c_35;
 	};
 };
 
@@ -128,17 +126,9 @@
 			stm,poll_interval = <100>;
 			stm,min_interval = <2>;
 		};
-		tcs3490@39 {
-			compatible = "ams,tcs3490";
-			reg = <0x39>;
-			ams,atime_ms = <504>;
-			ams,dgf = <550>;
-			ams,coef_b = <535>;
-			ams,coef_c = <1000>;
-			ams,coef_d = <795>;
-			ams,ct_coef = <2855>;
-			ams,ct_offset = <1973>;
-			ams,integration_cycle = <240>;
+		cm3323-i2c@10 {
+			compatible = "cm3323-i2c";
+			reg = <0x10>;
 		};
 	};
 
@@ -175,7 +165,7 @@
 	/* Over-riding model specific changes */
 	sound {
 		qcom,msm-ext-pa = "quaternary";
-		qcom,amp-gpio = <&msm_gpio 100 0x0>;
+		qcom,amp-gpio = <&msm_gpio 55 0x0>;
 		qcom,audio-routing =
 			"RX_BIAS", "MCLK",
 			"SPK_RX_BIAS", "MCLK",
@@ -270,31 +260,26 @@
 		};
 	};*/
 
-	i2c_35: i2c@35{
-		cell-index = <35>;
-		compatible = "i2c-gpio";
-		i2c-gpio-scl = <&msm_gpio 19  0x00>; /*scl gpio*/
-		i2c-gpio-sda = <&msm_gpio 18 0x00>;  /*sda gpio*/
-		i2c-gpio,delay-us = <2>;
+	i2c@78b9000 { /* BLSP1 QUP5 */
+		qcom,scl-gpio = <&msm_gpio 19 0>;
+		qcom,sda-gpio = <&msm_gpio 18 0>;
+                status = "okay";
 			atmel_mxt_1664t@4a {
 				compatible = "atmel,mxt_t";
 				reg = <0x4a>;
 				interrupt-parent = <&msm_gpio>;
 				interrupts = <13 0>;
 				pinctrl-names = "tsp_gpio_active", "tsp_gpio_suspend";
-				pinctrl-0 = <&tsp_i2c_active &tsp_irq_gpio_active &tsp_en_active &tsp_vendor_active>;
-				pinctrl-1 = <&tsp_i2c_suspend &tsp_irq_gpio_suspend &tsp_en_suspend &tsp_vendor_suspend>;
+				pinctrl-0 = <&tsp_i2c_active &tsp_irq_gpio_active &tsp_en_active >;
+				pinctrl-1 = <&tsp_i2c_suspend &tsp_irq_gpio_suspend &tsp_en_suspend>;
 				mxts,scl-gpio = <&msm_gpio 19 0x00>;
 				mxts,sda-gpio = <&msm_gpio 18 0x00>;
 				mxts,external_ldo = <&msm_gpio 73 0x01>; /*Touch En 1 gpio*/
-				mxts,external_ldo2 = <&msm_gpio 98 0x01>; /* Touch En2 gpio */
 				mxts,irq-gpio = <&msm_gpio 13 0x00>;
-				mxts,tsp_vendor1 = <&msm_gpio 55 0x00>;
-				mxts,tsp_vendor2 = <&msm_gpio 56 0x00>;
 				vcc_en-supply = <&pm8916_l5>;
 				mxts,rst = <&msm_gpio 114 0x1>;
 				mxts,i2c-pull-up = <1>;
-				mxts,tsp_coord = <28 45 3931 3276>;
+				mxts,tsp_coord = <31 45 4095 4095>;
 				mxts,pname = "GT510";
 		};
 	};
@@ -326,6 +311,44 @@
 		pinctrl-names = "earjack_gpio_active","earjack_gpio_suspend";
 		pinctrl-0 = <&earjack_det_act &earjack_switch_act>;
 		pinctrl-1 = <&earjack_det_sus &earjack_switch_sus>;
+	};
+
+	i2c_24: i2c@24 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cell-index = <24>;
+		compatible = "i2c-gpio";
+		i2c-gpio-scl = <&msm_gpio 25  0x00>; /*scl gpio*/
+		i2c-gpio-sda = <&msm_gpio 24 0x00>;  /*sda gpio*/
+		i2c-gpio,delay-us = <4>;
+
+		backlight_ic@2C {
+			compatible = "backlight-controller";
+			backlight-ic-name = "TI-LP8558";
+			reg = <0x2C>;
+			backlight,scl-gpio = <&msm_gpio 25 0x00>;
+			backlight,sda-gpio = <&msm_gpio 24 0x00>;
+			backlight-en-gpio = <&msm_gpio 69 0x00>;
+			backlight-ic-tuning = [
+					01	83
+					A5	14
+					A3	5E
+					A0	65
+					A1	6E
+					A6	40
+					A9	A0
+					98	21
+					9E	00
+					00	CD
+			];
+			backlight-ic-tuning-outdoor = [
+					00  FB
+			];
+			backlight-ic-tuning-normal = [
+					00	CD
+			];
+		};
 	};
 };
 
@@ -451,8 +474,8 @@
 };
 
 &pmx_mdss {
-	qcom,num-grp-pins = <2>;
-	qcom,pins = <&gp 8>, <&gp 97>;
+	qcom,num-grp-pins = <3>;
+	qcom,pins = <&gp 8>, <&gp 97>, <&gp 51>;
 };
 
 &pmx_i2c_lp8556 {
@@ -461,8 +484,8 @@
 };
 
 &pmx_lp8556 {
-	qcom,num-grp-pins = <2>;
-	qcom,pins = <&gp 51>, <&gp 69>;
+	qcom,num-grp-pins = <1>;
+	qcom,pins = <&gp 69>;
 };
 
 &pmx_mdss_esd {
@@ -470,18 +493,17 @@
 	qcom,pins = <&gp 0>;
 };
 
-&dsi_sdc_wxga_vid {
-	samsung,panel-extra-power-gpio1 = <&msm_gpio 8 0>;
-};
-&dsi_boe_wxga_vid{
+&dsi_sdc_xga_vid{
 	samsung,panel-extra-power-gpio1 = <&msm_gpio 8 0>;
 };
 
 &mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&dsi_sdc_xga_vid>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&i2c_lp8556_active &lp8556_active &mdss_dsi_active &mdss_esd_active>;
 	pinctrl-1 = <&i2c_lp8556_suspend &lp8556_suspend &mdss_dsi_suspend &mdss_esd_suspend>;
 	qcom,platform-reset-gpio = <&msm_gpio 97 0>;
+	qcom,platform-enable-gpio = <&msm_gpio 51 0>;
 };
 
 &pm8916_chg {

@@ -12,18 +12,13 @@
 
 /dts-v1/;
 
-#include "gt510wifi/msm8916-gt510lte-r03.dtsi"
+#include "gt510lte/msm8916-gt510lte-r03.dtsi"
 #include "samsung/msm8916-memory.dtsi"
 
 / {
 	model = "APQ8016 SAMSUNG GT510 WIFI PROJECT REV03";
-	/* compatible = "qcom,msm8916-mtp", "qcom,msm8916", "qcom,mtp"; */
 	compatible = "qcom,apq8016", "qcom,mtp";
-	/*QCOM BOARD REV TYPE...*/
-        /*qcom,board-id = <8 0>;*/
-        /*SEC BOARD REV TYPE...*/
 	qcom,board-id = <0xF708FF01 3>;
-        /*parm1)[31:20]platform_id [19:12]qc_hw_id [11:4]national code [3:0] operator, param2)SEC hw-rev*/
 
 	memory {
 		modem_adsp_mem: modem_adsp_region@0 {

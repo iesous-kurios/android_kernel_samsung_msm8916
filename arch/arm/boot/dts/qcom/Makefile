@@ -40,12 +40,18 @@ dtb-$(CONFIG_ARCH_MSM8909) += msm8909-sim.dtb \
 	msm8909-1gb-cdp.dtb \
 	msm8909-1gb-mtp.dtb
 ifeq ($(CONFIG_SEC_GT58_PROJECT),y)
-dtb-$(CONFIG_MACH_GT58WIFI_EUR_OPEN) += msm8916-gt58wifi.dtb
+dtb-$(CONFIG_MACH_GT58_EUR_OPEN) += msm8916-gt58lte.dtb
+dtb-$(CONFIG_MACH_GT58WIFI_EUR_OPEN) +=	msm8916-gt58wifi.dtb
 else ifeq ($(CONFIG_SEC_GT510_PROJECT),y)
-dtb-$(CONFIG_MACH_GT510WIFI_EUR_OPEN) += msm8916-gt510wifi-r00.dtb \
-					msm8916-gt510wifi-r03.dtb \
-					msm8916-gt510wifi-r06.dtb \
-					msm8916-gt510wifi-r07.dtb
+dtb-$(CONFIG_MACH_GT510_EUR_OPEN) += \
+				msm8916-gt510lte-r03.dtb \
+				msm8916-gt510lte-r04.dtb \
+				msm8916-gt510lte-r06.dtb \
+				msm8916-gt510lte-r07.dtb
+dtb-$(CONFIG_MACH_GT510WIFI_EUR_OPEN) += \
+				msm8916-gt510wifi-r03.dtb \
+				msm8916-gt510wifi-r06.dtb \
+				msm8916-gt510wifi-r07.dtb
 else ifeq ($(CONFIG_SEC_ROSSA_PROJECT),y)
 dtb-$(CONFIG_MACH_ROSSA_TMO) += msm8916-rossatmo.dtb
 else

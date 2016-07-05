@@ -12,7 +12,7 @@
 
 /dts-v1/;
 
-#include "gt58wifi/msm8916-gt58wifi.dtsi"
+#include "gt58lte/msm8916-gt58lte.dtsi"
 #include "samsung/msm8916-memory.dtsi"
 
 / {

@@ -15,8 +15,7 @@
 #include "msm8916-camera-sensor-gt510.dtsi"
 #include "msm8916-gt510lte-battery-r00.dtsi"
 #include "msm8916-max77849-gt510-r01.dtsi"
-#include "dsi_panel_S6D7AA0_LTL101AT01_RT8555_xga_video.dtsi"
-#include "dsi_panel_S6D7AA0_BOE_LTL101AT01_RT8555_xga_video.dtsi"
+#include "dsi_panel_S6D7AA0_LTL101AT01_xga_video.dtsi"
 / {
 	aliases {
 		serial0 = &blsp1_uart2;
@@ -261,7 +260,7 @@
 		};
 	};*/
 
-      i2c@78b9000 { /* BLSP1 QUP5 */
+	i2c@78b9000 { /* BLSP1 QUP5 */
 		qcom,scl-gpio = <&msm_gpio 19 0>;
 		qcom,sda-gpio = <&msm_gpio 18 0>;
                 status = "okay";
@@ -312,6 +311,48 @@
 		pinctrl-names = "earjack_gpio_active","earjack_gpio_suspend";
 		pinctrl-0 = <&earjack_det_act &earjack_switch_act>;
 		pinctrl-1 = <&earjack_det_sus &earjack_switch_sus>;
+	};
+
+	i2c_24: i2c@24 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cell-index = <24>;
+		compatible = "i2c-gpio";
+		i2c-gpio-scl = <&msm_gpio 25  0x00>; /*scl gpio*/
+		i2c-gpio-sda = <&msm_gpio 24 0x00>;  /*sda gpio*/
+		i2c-gpio,delay-us = <4>;
+		backlight_ic@31 {
+			compatible = "backlight-controller";
+			backlight-ic-name = "RICHTEK-RT8555";
+			reg = <0x31>;
+			backlight,scl-gpio = <&msm_gpio 25 0x00>;
+			backlight,sda-gpio = <&msm_gpio 24 0x00>;
+			backlight-en-gpio = <&msm_gpio 69 0x00>;
+			backlight-ic-tuning = [
+					00	21
+					01	A7
+					02	A4
+					08	70
+					09	10
+					0A	04
+					50	05
+					51	08
+			];
+			backlight-ic-tuning-outdoor = [
+					00	21
+					01	A7
+					02	C5
+					08	70
+					09	10
+					0A	04
+					50	05
+					51	08
+			];
+			backlight-ic-tuning-normal = [
+					02	A4
+			];
+		};
 	};
 };
 
