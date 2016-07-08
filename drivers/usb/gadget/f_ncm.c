@@ -813,11 +813,17 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 		if (alt > 1)
 			goto fail;
 
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+		if (alt > 0) {
+#endif
 		if (ncm->port.in_ep->driver_data) {
 			DBG(cdev, "reset ncm\n");
 			gether_disconnect(&ncm->port);
 			ncm_reset_values(ncm);
 		}
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+		}
+#endif
 
 		/*
 		 * CDC Network only sends data in non-default altsettings.
@@ -853,9 +859,11 @@ static int ncm_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 				return PTR_ERR(net);
 		}
 
+#ifndef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 		spin_lock(&ncm->lock);
 		ncm_notify(ncm);
 		spin_unlock(&ncm->lock);
+#endif
 	} else
 		goto fail;
 

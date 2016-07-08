@@ -1497,6 +1497,11 @@ static int functionfs_bind(struct ffs_data *ffs, struct usb_composite_dev *cdev)
 	ffs->ep0req->context = ffs;
 
 	lang = ffs->stringtabs;
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	if( lang == NULL )
+		printk("%s :  string tab is NULL! \n",__func__);
+	else	
+#else
 	if (lang) {
 		for (; *lang; ++lang) {
 			struct usb_string *str = (*lang)->strings;
@@ -1505,7 +1510,7 @@ static int functionfs_bind(struct ffs_data *ffs, struct usb_composite_dev *cdev)
 				str->id = id;
 		}
 	}
-
+#endif
 	ffs->gadget = cdev->gadget;
 	ffs_data_get(ffs);
 	return 0;
