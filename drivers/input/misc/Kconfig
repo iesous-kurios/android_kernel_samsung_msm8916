@@ -1000,5 +1000,66 @@ config SENSORS_CM3323
 
 	  Say N here if you do not use cm3323.
 
+config SENSORS_SX9500
+	depends on I2C
+	tristate "SX9500 driver"
+	default n
+	help
+	  Say Y here if you use sx9500.
+	  This option enables grip sensors using
+	  SemTech sx9500 device driver.
+
+	  Say N here if you do not use sx9500.
+
+config SENSORS_SX9500_INIT_TOUCH_THRESHOLD
+	int "SX9500 Grip sensor threshold for init touch"
+	depends on I2C
+	default "3000"
+	help
+	  This value is the standard of init touch using
+	  SemTech sx9500 device driver.
+
+config SENSORS_SX9500_NORMAL_TOUCH_THRESHOLD
+	int "SX9500 Grip sensor threshold for normal touch"
+	depends on I2C
+	default "17"
+	help
+	  This value is the standard of normal touch using
+	  SemTech sx9500 device driver.
+
+config SENSORS_SX9500_TEMPERATURE_COMPENSATION
+	depends on I2C
+	tristate "SX9500 Grip sensor temperature compensation"
+	default n
+	help
+	  Say Y here if you use temperature compensation code.
+	  This option enables grip sensors using
+	  temperature compensation code.
+
+config SENSORS_SX9500_DEFENCE_CODE_FOR_TA_NOISE
+	depends on I2C
+	tristate "SX9500 Grip sensor defence code for TA noise"
+	default n
+	help
+	  Say Y here if you use defence code for TA noise.
+	  This option enables grip sensors using
+	  defence code for TA noise.
+
+config SENSORS_SX9500_REGULATOR_ONOFF
+	depends on I2C
+	tristate "SX9500 Grip sensor Regulator"
+	default n
+	help
+	  Say Y here if you use regulator for grip sensor.
+	  This option enables regulator for grip sensor using
+	  SemTech sx9500 device driver.
+
+config SENSORS_SX9500_SAMPLE_RATE_SET_125KHZ
+	depends on I2C
+	tristate "SX9500 sample rate set 125KHZ"
+	default n
+	help
+	  Say Y here if you want to set the sample rate to 125KHZ.
+
 endif
 
