@@ -108,6 +108,12 @@ static int pcm_afe_instance[2];
 static int proxy_afe_instance[2];
 bool afe_close_done[2] = {true, true};
 
+#ifdef CONFIG_AUDIO_QUAT_I2S_ENABLE
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+extern void maxim_amp_enable(int enable);
+#endif
+#endif
+
 #define SIZEOF_CFG_CMD(y) \
 		(sizeof(struct apr_hdr) + sizeof(u16) + (sizeof(struct y)))
 
@@ -1878,6 +1884,13 @@ int afe_port_start(u16 port_id, union afe_port_config *afe_config,
 	}
 	ret = afe_send_cmd_port_start(port_id);
 
+#ifdef CONFIG_AUDIO_QUAT_I2S_ENABLE
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+	if(port_id == AFE_PORT_ID_QUATERNARY_MI2S_RX)
+		maxim_amp_enable(1);
+#endif
+#endif
+
 fail_cmd:
 	mutex_unlock(&this_afe.afe_cmd_lock);
 	return ret;
@@ -2160,6 +2173,13 @@ int afe_loopback_gain(u16 port_id, u16 volume)
 	struct afe_loopback_gain_per_path_param set_param;
 	int ret = 0;
 	int index = 0;
+
+#ifdef CONFIG_AUDIO_QUAT_I2S_ENABLE
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+	if(port_id == AFE_PORT_ID_QUATERNARY_MI2S_RX)
+		maxim_amp_enable(0);
+#endif
+#endif
 
 	if (this_afe.apr == NULL) {
 		this_afe.apr = apr_register("ADSP", "AFE", afe_callback,

@@ -2278,7 +2278,9 @@ static int msm8x16_wcd_codec_enable_spk_pa(struct snd_soc_dapm_widget *w,
 		usleep_range(CODEC_DELAY_1_MS, CODEC_DELAY_1_1_MS);
 		snd_soc_update_bits(codec,
 			MSM8X16_WCD_A_ANALOG_SPKR_DAC_CTL, 0x10, 0x10);
+#ifndef CONFIG_SEC_GT510_PROJECT
 		msm8x16_wcd_boost_mode_sequence(codec, SPK_PMD);
+#endif
 		snd_soc_update_bits(codec, w->reg, 0x80, 0x00);
 		switch (msm8x16_wcd->boost_option) {
 		case BOOST_SWITCH:
@@ -2333,7 +2335,9 @@ static int msm8x16_wcd_codec_enable_dig_clk(struct snd_soc_dapm_widget *w,
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
 		snd_soc_update_bits(codec, w->reg, 0x80, 0x80);
+#ifndef CONFIG_SEC_GT510_PROJECT
 		msm8x16_wcd_boost_mode_sequence(codec, SPK_PMU);
+#endif
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		if (msm8x16_wcd->rx_bias_count == 0)
@@ -3370,6 +3374,21 @@ static int msm8x16_wcd_codec_enable_clock_block(struct snd_soc_codec *codec,
 	return 0;
 }
 
+#ifdef CONFIG_AUDIO_QUAT_I2S_ENABLE
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+void msm8x16_wcd_speaker_boost_force_enable(int enable)
+{
+	pr_info("%s: enable = %u \n",
+		__func__, enable);
+	if (enable) {
+		msm8x16_wcd_boost_on(registered_codec);
+	} else {
+		msm8x16_wcd_boost_off(registered_codec);
+	}
+}
+#endif
+#endif
+
 int msm8x16_wcd_mclk_enable(struct snd_soc_codec *codec,
 			    int mclk_enable, bool dapm)
 {
@@ -3956,6 +3975,9 @@ static const struct msm8x16_wcd_reg_mask_val msm8x16_wcd_reg_defaults[] = {
 	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_MICB_1_INT_RBIAS, 0x00),
 	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_MICB_1_VAL, 0xC0), /* micbias 2.8V */
 #endif
+#ifdef CONFIG_SEC_GT510_PROJECT
+	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_NCP_VCTRL, 0x26),
+#endif
 };
 
 static const struct msm8x16_wcd_reg_mask_val msm8x16_wcd_reg_defaults_2_0[] = {
@@ -3990,6 +4012,9 @@ static const struct msm8x16_wcd_reg_mask_val msm8909_wcd_reg_defaults[] = {
 #ifdef CONFIG_SAMSUNG_JACK
 	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_MICB_1_INT_RBIAS, 0x00),
 	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_MICB_1_VAL, 0xC0), /* micbias 2.8V */
+#endif
+#ifdef CONFIG_SEC_GT510_PROJECT
+	MSM8X16_WCD_REG_VAL(MSM8X16_WCD_A_ANALOG_NCP_VCTRL, 0x26),
 #endif
 };
 

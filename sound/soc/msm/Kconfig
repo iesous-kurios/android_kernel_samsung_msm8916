@@ -132,20 +132,22 @@ config QTI_PP
 	 customized mixing.
 
 config SAMSUNG_AUDIO
-	tristate "Samsung audio support"
-	depends on SND_SOC_MSM_QDSP6V2_INTF
+	tristate "samsung audio feature"
 	help
 	 To add support for samsung audio solution
 
 config AUDIO_SPEAKER_OUT_NXP_AMP_ENABLE
-	tristate "NXP amp support"
-	default n
+	tristate "samsung audio speaker NXP amp feature"
 	help
 	 To add support for speaker NXP amp
 
+config AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+	tristate "samsung audio speaker maxim amp feature"
+	help
+	 To add support for speaker maxim amp
+
 config AUDIO_SECONDARY_MIC_USE_EXT_BIAS_ENABLE
 	tristate "samsung audio use external LDO bias for seconardy mic bias"
-	default n
 	help
 	 To add support for external mic bias
 

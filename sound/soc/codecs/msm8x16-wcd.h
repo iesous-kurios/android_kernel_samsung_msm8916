@@ -260,5 +260,11 @@ extern int msm8x16_register_notifier(struct snd_soc_codec *codec,
 extern int msm8x16_unregister_notifier(struct snd_soc_codec *codec,
 				     struct notifier_block *nblock);
 
+#ifdef CONFIG_AUDIO_QUAT_I2S_ENABLE
+#ifdef CONFIG_AUDIO_SPEAKER_OUT_MAXIM_AMP_ENABLE
+extern void msm8x16_wcd_speaker_boost_force_enable(int enable);
+#endif
+#endif
+
 #endif
 
