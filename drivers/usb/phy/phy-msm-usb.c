@@ -137,6 +137,10 @@ static char bus_clkname[USB_NUM_BUS_CLOCKS][20] = {"bimc_clk", "snoc_clk",
 						"pcnoc_clk"};
 static bool bus_clk_rate_set;
 
+#ifdef CONFIG_USB_NOTIFY_LAYER
+#include "phy-msm-usb_sec.c"
+#endif
+
 static void
 msm_otg_dbg_log_event(struct usb_phy *phy, char *event, int d1, int d2)
 {
@@ -2004,6 +2008,10 @@ static void msm_otg_start_host(struct usb_otg *otg, int on)
 
 	if (!otg->host)
 		return;
+
+#if defined (CONFIG_USB_HOST_NOTIFY)
+	msm_otg_host_notify(motg, on);
+#endif
 
 	hcd = bus_to_hcd(otg->host);
 
@@ -5866,6 +5874,9 @@ static int msm_otg_probe(struct platform_device *pdev)
 	phy->set_power = msm_otg_set_power;
 	phy->set_suspend = msm_otg_set_suspend;
 	phy->dbg_event = msm_otg_dbg_log_event;
+#ifdef CONFIG_USB_HOST_NOTIFY
+	phy->set_suspend = NULL;
+#endif
 
 	phy->io_ops = &msm_otg_io_ops;
 
