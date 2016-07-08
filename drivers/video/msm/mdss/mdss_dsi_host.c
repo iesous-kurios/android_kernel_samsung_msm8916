@@ -357,6 +357,9 @@ void mdss_dsi_host_init(struct mdss_panel_data *pdata)
 	if (pinfo->data_lane0)
 		dsi_ctrl |= BIT(4);
 
+#if defined(CONFIG_SEC_GT510_PROJECT)
+	MIPI_OUTP(ctrl_pdata->ctrl_base + 0x3C, 0x10000000);
+#endif
 
 	data = 0;
 	if (pinfo->te_sel)
