@@ -14,8 +14,8 @@
        i2c_13:i2c@13 {
 		cell-index = <13>;
 		compatible = "i2c-gpio";
-		i2c-gpio-scl = <&msm_gpio 46 0x00>;
-		i2c-gpio-sda = <&msm_gpio 45 0x00>;
+		i2c-gpio-scl = <&msm_gpio 3 0x00>;
+		i2c-gpio-sda = <&msm_gpio 2 0x00>;
 		i2c-gpio,delay-us = <2>;
 		#address-cells = <1>;
 		#size-cells = <0>;

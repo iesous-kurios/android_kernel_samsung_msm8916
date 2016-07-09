@@ -153,23 +153,20 @@
 		qcom,cam-vreg-max-voltage = <0 0 0>;
 		qcom,cam-vreg-op-mode = <200000 0 80000>;
 		pinctrl-names = "cam_default", "cam_suspend";
-		pinctrl-0 = <&cam_sensor_mclk1_default  &cam_core_front_en_default &cam_core_en_default &cam_sensor_front_default>;
-		pinctrl-1 = <&cam_sensor_mclk1_sleep &cam_core_front_en_sleep &cam_core_en_default &cam_sensor_front_sleep>;
+		pinctrl-0 = <&cam_sensor_mclk1_default &cam_core_en_default &cam_sensor_front_default>;
+		pinctrl-1 = <&cam_sensor_mclk1_sleep &cam_core_en_default &cam_sensor_front_sleep>;
 		gpios = <&msm_gpio 27 0>,
-			  <&msm_gpio 120 0>,
 			  <&msm_gpio 16 0>,
 			  <&msm_gpio 33 0>,
 			  <&msm_gpio 28 0>,
 			  <&msm_gpio 32 0>;
-		qcom,gpio-vio = <1>;
-		qcom,gpio-vana = <2>;
-		qcom,gpio-vdig = <3>;
-		qcom,gpio-reset = <4>;
-		qcom,gpio-standby = <5>;
-		qcom,gpio-req-tbl-num = <0 1 2 3 4 5>;
-		qcom,gpio-req-tbl-flags = <1 0 0 0 0 0>;
+		qcom,gpio-vana = <1>;
+		qcom,gpio-vdig = <2>;
+		qcom,gpio-reset = <3>;
+		qcom,gpio-standby = <4>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAMIF_MCLK",
-			"CAN_VIO",
 			"CAM_VANA",
 			"CAM_VDIG",
 			"CAM_RESET",

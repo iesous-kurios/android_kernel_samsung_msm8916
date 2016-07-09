@@ -11,10 +11,10 @@
  */
 
 #include "../samsung/msm8916.dtsi"
-#include "msm8916-pinctrl-gt510lte-r04.dtsi"
+#include "msm8916-pinctrl-gt510lte.dtsi"
 #include "msm8916-camera-sensor-gt510.dtsi"
-#include "msm8916-gt510lte-battery-r00.dtsi"
-#include "msm8916-max77849-gt510-r01.dtsi"
+#include "msm8916-gt510lte-battery.dtsi"
+#include "msm8916-max77849-gt510.dtsi"
 #include "dsi_panel_S6D7AA0_LTL101AT01_xga_video.dtsi"
 / {
 	aliases {
@@ -322,35 +322,31 @@
 		i2c-gpio-scl = <&msm_gpio 25  0x00>; /*scl gpio*/
 		i2c-gpio-sda = <&msm_gpio 24 0x00>;  /*sda gpio*/
 		i2c-gpio,delay-us = <4>;
-		backlight_ic@31 {
+
+		backlight_ic@2C {
 			compatible = "backlight-controller";
-			backlight-ic-name = "RICHTEK-RT8555";
-			reg = <0x31>;
+			backlight-ic-name = "TI-LP8558";
+			reg = <0x2C>;
 			backlight,scl-gpio = <&msm_gpio 25 0x00>;
 			backlight,sda-gpio = <&msm_gpio 24 0x00>;
 			backlight-en-gpio = <&msm_gpio 69 0x00>;
 			backlight-ic-tuning = [
-					00	21
-					01	A7
-					02	A4
-					08	70
-					09	10
-					0A	04
-					50	05
-					51	08
+					01	83
+					A5	14
+					A3	5E
+					A0	65
+					A1	6E
+					A6	40
+					A9	A0
+					98	21
+					9E	00
+					00	CD
 			];
 			backlight-ic-tuning-outdoor = [
-					00	21
-					01	A7
-					02	C5
-					08	70
-					09	10
-					0A	04
-					50	05
-					51	08
+					00  FB
 			];
 			backlight-ic-tuning-normal = [
-					02	A4
+					00	CD
 			];
 		};
 	};
@@ -478,8 +474,8 @@
 };
 
 &pmx_mdss {
-	qcom,num-grp-pins = <2>;
-	qcom,pins = <&gp 8>, <&gp 97>;
+	qcom,num-grp-pins = <3>;
+	qcom,pins = <&gp 8>, <&gp 97>, <&gp 51>;
 };
 
 &pmx_i2c_lp8556 {
@@ -492,28 +488,22 @@
 	qcom,pins = <&gp 69>;
 };
 
-&pmx_pwm_ap {
-	qcom,num-grp-pins = <1>;
-	qcom,pins = <&gp 51>;
-};
-
 &pmx_mdss_esd {
 	qcom,num-grp-pins = <1>;
 	qcom,pins = <&gp 0>;
 };
 
-&dsi_sdc_xga_vid {
-	samsung,panel-extra-power-gpio1 = <&msm_gpio 8 0>;
-};
-&dsi_boe_xga_vid{
+&dsi_sdc_xga_vid{
 	samsung,panel-extra-power-gpio1 = <&msm_gpio 8 0>;
 };
 
 &mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&dsi_sdc_xga_vid>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
-	pinctrl-0 = <&i2c_lp8556_active &lp8556_active &mdss_dsi_active &mdss_esd_active &pwm_ap_active>;
-	pinctrl-1 = <&i2c_lp8556_suspend &lp8556_suspend &mdss_dsi_suspend &mdss_esd_suspend &pwm_ap_suspend>;
+	pinctrl-0 = <&i2c_lp8556_active &lp8556_active &mdss_dsi_active &mdss_esd_active>;
+	pinctrl-1 = <&i2c_lp8556_suspend &lp8556_suspend &mdss_dsi_suspend &mdss_esd_suspend>;
 	qcom,platform-reset-gpio = <&msm_gpio 97 0>;
+	qcom,platform-enable-gpio = <&msm_gpio 51 0>;
 };
 
 &pm8916_chg {

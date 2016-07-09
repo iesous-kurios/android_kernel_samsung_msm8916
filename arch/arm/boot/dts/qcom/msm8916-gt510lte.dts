@@ -12,13 +12,13 @@
 
 /dts-v1/;
 
-#include "gt510lte/msm8916-gt510lte-r03.dtsi"
+#include "gt510lte/msm8916-gt510lte.dtsi"
 #include "samsung/msm8916-memory.dtsi"
 
 / {
-	model = "MSM8916 SAMSUNG GT510 PROJECT REV03";
+	model = "MSM8916 SAMSUNG GT510 PROJECT REV07";
 	compatible = "qcom,msm8916-mtp", "qcom,msm8916", "qcom,mtp";
-	qcom,board-id = <0xCE08FF01 3>;
+	qcom,board-id = <0xCE08FF01 7>;
 };
 
 /*overwrite s2 cpr voltage for model variant*/
