@@ -131,10 +131,12 @@ void set_dload_mode(int on)
 #endif
 }
 
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 static bool get_dload_mode(void)
 {
 	return dload_mode_enabled;
 }
+#endif
 
 static void enable_emergency_dload_mode(void)
 {
@@ -189,10 +191,12 @@ static void enable_emergency_dload_mode(void)
 	pr_err("dload mode is not enabled on target\n");
 }
 
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 static bool get_dload_mode(void)
 {
 	return false;
 }
+#endif
 #endif
 
 void msm_set_restart_mode(int mode)
@@ -227,8 +231,10 @@ static void halt_spmi_pmic_arbiter(void)
 
 static void msm_restart_prepare(const char *cmd)
 {
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 	bool need_warm_reset = false;
-#ifdef CONFIG_MACH_SAMSUNG
+#else
+	unsigned int warm_reboot_set = 0;
 	unsigned long value;
 #endif
 
@@ -262,6 +268,7 @@ static void msm_restart_prepare(const char *cmd)
 #endif
 #endif
 
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 	if (qpnp_pon_check_hard_reset_stored()) {
 		/* Set warm reset as true when device is in dload mode
 		 *  or device doesn't boot up into recovery, bootloader or rtc.
@@ -276,30 +283,45 @@ static void msm_restart_prepare(const char *cmd)
 		need_warm_reset = (get_dload_mode() ||
 				(cmd != NULL && cmd[0] != '\0'));
 	}
+#else
+	pr_info("preparing for restart now\n");
+	warm_reboot_set = 0;
+#endif
 
-#ifdef CONFIG_MSM_PRESERVE_MEM
+#if defined(CONFIG_MSM_PRESERVE_MEM) && !defined(CONFIG_POWER_RESET_MSM_SEC)
 	need_warm_reset = true;
 #endif
 
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 	/* Hard reset the PMIC unless memory contents must be maintained. */
 	if (need_warm_reset) {
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
 	} else {
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
 	}
+#endif
 
 	if (cmd != NULL) {
 		if (!strncmp(cmd, "bootloader", 10)) {
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_BOOTLOADER);
+#endif
 			__raw_writel(0x77665500, restart_reason);
+#if defined(CONFIG_POWER_RESET_MSM_SEC)
+			warm_reboot_set = 1;
+#endif
 		} else if (!strncmp(cmd, "recovery", 8)) {
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_RECOVERY);
+#endif
 			__raw_writel(0x77665502, restart_reason);
 		} else if (!strcmp(cmd, "rtc")) {
+#ifndef CONFIG_POWER_RESET_MSM_SEC
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_RTC);
+#endif
 			__raw_writel(0x77665503, restart_reason);
 		} else if (!strncmp(cmd, "oem-", 4)) {
 			unsigned long code;
@@ -308,21 +330,27 @@ static void msm_restart_prepare(const char *cmd)
 			if (!ret)
 				__raw_writel(0x6f656d00 | (code & 0xff),
 					     restart_reason);
-#ifdef CONFIG_MACH_SAMSUNG
+#ifdef CONFIG_POWER_RESET_MSM_SEC
 #ifdef CONFIG_SEC_DEBUG
 		} else if (!strncmp(cmd, "sec_debug_hw_reset", 18)) {
+			warm_reboot_set = 1;
 			__raw_writel(0x776655ee, restart_reason);
 #endif
 		} else if (!strncmp(cmd, "download", 8)) {
 			__raw_writel(0x12345671, restart_reason);
+			warm_reboot_set = 1;
 		} else if (!strncmp(cmd, "nvbackup", 8)) {
 			__raw_writel(0x77665511, restart_reason);
+			warm_reboot_set = 1;
 		} else if (!strncmp(cmd, "nvrestore", 9)) {
 			__raw_writel(0x77665512, restart_reason);
+			warm_reboot_set = 1;
 		} else if (!strncmp(cmd, "nverase", 7)) {
 			__raw_writel(0x77665514, restart_reason);
+			warm_reboot_set = 1;
 		} else if (!strncmp(cmd, "nvrecovery", 10)) {
 			__raw_writel(0x77665515, restart_reason);
+			warm_reboot_set = 1;
 		} else if (!strncmp(cmd, "sud", 3)) {
 			__raw_writel(0xabcf0000 | (cmd[3] - '0'),
 								restart_reason);
@@ -332,9 +360,20 @@ static void msm_restart_prepare(const char *cmd)
 		} else if (!strncmp(cmd, "cpdebug", 7) /*  set cp debug level */
 			   && !kstrtoul(cmd + 7, 0, &value)) {
 			__raw_writel(0xfedc0000 | value, restart_reason);
+#if defined(CONFIG_MUIC_SUPPORT_RUSTPROOF)
+		} else if (!strncmp(cmd, "swsel", 5) /* set switch value */
+			   && !kstrtoul(cmd + 5, 0, &value)) {
+			__raw_writel(0xabce0000 | value, restart_reason);
+#endif
 #endif
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
+#ifdef CONFIG_POWER_RESET_MSM_SEC
+			warm_reboot_set = 1;
+		} else if (strlen(cmd) == 0) {
+		    printk(KERN_NOTICE "%s : value of cmd is NULL.\n", __func__);
+		        __raw_writel(0x12345678, restart_reason);
+#endif
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
@@ -344,6 +383,16 @@ static void msm_restart_prepare(const char *cmd)
 		__raw_writel(0x12345678, restart_reason);
 #endif
 	}
+
+#ifdef CONFIG_RESTART_REASON_SEC_PARAM
+	if (warm_reboot_set == 1) {
+		qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
+	} else {
+		qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
+	}
+#else
+	qpnp_pon_system_pwr_off(PON_POWER_OFF_WARM_RESET);
+#endif
 
 	flush_cache_all();
 
