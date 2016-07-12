@@ -191,9 +191,15 @@ struct msm_gpio_set_tbl {
 	uint32_t delay;
 };
 
+#ifdef CONFIG_MSMB_CAMERA_SAMSUNG
+#define MAX_CAMERA_GPIO_SIZE 16
+#else
+#define MAX_CAMERA_GPIO_SIZE 10
+#endif
+
 struct msm_camera_gpio_num_info {
-	uint16_t gpio_num[10];
-	uint8_t valid[10];
+	uint16_t gpio_num[MAX_CAMERA_GPIO_SIZE];
+	uint8_t valid[MAX_CAMERA_GPIO_SIZE];
 };
 
 struct msm_camera_gpio_conf {
