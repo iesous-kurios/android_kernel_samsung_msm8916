@@ -100,6 +100,9 @@ enum {
 	MDSS_PANEL_BLANK_BLANK = 0,
 	MDSS_PANEL_BLANK_UNBLANK,
 	MDSS_PANEL_BLANK_LOW_POWER,
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	MDSS_PANEL_BLANK_READY_TO_UNBLANK,
+#endif
 };
 
 enum {
@@ -204,6 +207,10 @@ enum mdss_intf_events {
 	MDSS_EVENT_DSI_STREAM_SIZE,
 	MDSS_EVENT_DSI_DYNAMIC_SWITCH,
 	MDSS_EVENT_REGISTER_RECOVERY_HANDLER,
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	MDSS_SAMSUNG_EVENT_FRAME_UPDATE,
+	MDSS_SAMSUNG_EVENT_FB_EVENT_CALLBACK,
+#endif
 };
 
 struct lcd_panel_info {
@@ -426,6 +433,9 @@ struct mdss_panel_info {
 	struct edp_panel_info edp;
 
 	struct mdss_livedisplay_ctx *livedisplay;
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	int panel_state;
+#endif
 };
 
 #ifdef CONFIG_MACH_SAMSUNG
@@ -471,6 +481,9 @@ struct mdss_panel_data {
 	int (*event_handler) (struct mdss_panel_data *pdata, int e, void *arg);
 
 	struct mdss_panel_data *next;
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	void *panel_private;
+#endif
 };
 
 /**

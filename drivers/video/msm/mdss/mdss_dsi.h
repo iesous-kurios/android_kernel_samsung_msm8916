@@ -90,6 +90,9 @@ enum dsi_panel_bl_ctrl {
 	BL_PWM,
 	BL_WLED,
 	BL_DCS_CMD,
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	BL_SS_PWM,
+#endif
 	UNKNOWN_CTRL,
 };
 
@@ -98,6 +101,9 @@ enum dsi_panel_status_mode {
 	ESD_REG,
 	ESD_REG_NT35596,
 	ESD_TE,
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	ESD_REG_IRQ,
+#endif
 	ESD_MAX,
 };
 
@@ -249,6 +255,10 @@ struct dsi_panel_cmds {
 	struct dsi_cmd_desc *cmds;
 	int cmd_cnt;
 	int link_state;
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	char *read_size;
+	char *read_startoffset;
+#endif
 };
 
 struct dsi_kickoff_action {
@@ -346,6 +356,10 @@ struct mdss_dsi_ctrl_pdata {
 #ifdef CONFIG_MACH_SAMSUNG
 	int (*panel_reset) (struct mdss_panel_data *pdata, int enable);
 #endif
+#ifdef CONFIG_FB_MSM_MDSS_SAMSUNG
+	int (*event_handler) (struct mdss_panel_data *pdata, int e, void *arg);
+	int lcd_select_gpio;
+#endif
 	struct mdss_panel_data panel_data;
 	unsigned char *ctrl_base;
 	u32 hw_rev;
@@ -370,6 +384,9 @@ struct mdss_dsi_ctrl_pdata {
 	struct clk *shadow_byte_clk;
 	struct clk *shadow_pixel_clk;
 	struct clk *vco_clk;
+#ifdef CONFIG_FB_MSM_MDSS_SAMSUNG
+	struct clk *lvds_clk;
+#endif
 	u8 ctrl_state;
 	int panel_mode;
 	int irq_cnt;
@@ -657,5 +674,15 @@ static inline bool mdss_dsi_ulps_feature_enabled(
 {
 	return pdata->panel_info.ulps_feature_enabled;
 }
+
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+int mdss_samsung_parse_dcs_cmds(struct device_node *np,
+		struct dsi_panel_cmds *pcmds, char *cmd_key, char *link_key);
+u32 mdss_samsung_panel_cmd_read(struct mdss_dsi_ctrl_pdata *ctrl,
+		struct dsi_panel_cmds *pcmds, int read_size);
+void mdss_samsung_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
+		struct dsi_panel_cmds *pcmds);
+struct mdss_dsi_ctrl_pdata **mdss_dsi_get_ctrl(void);
+#endif
 
 #endif /* MDSS_DSI_H */

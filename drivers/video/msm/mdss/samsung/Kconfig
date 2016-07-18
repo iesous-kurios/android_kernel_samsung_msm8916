@@ -1,0 +1,53 @@
+config FB_MSM_MDSS_SAMSUNG
+	depends on MACH_SAMSUNG && FB_MSM_MDSS
+	bool "mdss config for samsung product"
+	default n
+	---help---
+	  Mdss config signature for samsung product
+
+config DUAL_PANEL
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "dual paneloperation"
+	default n
+	---help---
+	  dual panel operation support
+
+config PARTIAL_UPDATE
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "partial update operation"
+	default n
+	---help---
+	  partial update operation support
+
+config ALPM_MODE
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "alpm mode operation"
+	default n
+	---help---
+	  alpm mode operation support
+
+config CABC_FUNCTION
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "DDI cabc operation"
+	default n
+	---help---
+	  DDI cabc operation support
+
+config SAMSUNG_DEBUG_DISPLAY
+	depends on FB_MSM_MDSS_SAMSUNG
+        bool "Add Samsung Debugging code"
+        default n
+
+menu "Samsung panel selection"
+
+config PANEL_S6D7AA0_LSL080AL03_WXGA
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "SDC S6D7AA0 LDI"
+	default n
+
+config PANEL_S6D7AA0_LTL101AT01_WXGA
+	depends on FB_MSM_MDSS_SAMSUNG
+	bool "SDC S6D7AA0 LDI"
+	default n
+
+endmenu

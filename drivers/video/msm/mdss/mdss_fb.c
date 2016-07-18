@@ -56,6 +56,10 @@
 
 #include "mdss_livedisplay.h"
 
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+#include "samsung/ss_dsi_panel_common.h" /* UTIL HEADER */
+#endif
+
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MDSS_FB_NUM 3
 #else
@@ -1271,6 +1275,9 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
 	int ret = 0;
 	int cur_power_state, req_power_state = MDSS_PANEL_POWER_OFF;
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	struct samsung_display_driver_data *vdd = samsung_get_vdd();
+#endif
 
 	if (!mfd || !op_enable)
 		return -EPERM;
@@ -1297,6 +1304,11 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 		else
 			blank_mode = FB_BLANK_UNBLANK;
 	}
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+		if (info->node <= (SUPPORT_PANEL_COUNT - 1))
+					vdd->vdd_blank_mode[info->node] =  blank_mode;
+#endif
+
 
 	switch (blank_mode) {
 	case FB_BLANK_UNBLANK:

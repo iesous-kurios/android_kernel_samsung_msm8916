@@ -23,6 +23,9 @@
 #include "mdss_panel.h"
 #include "mdss_debug.h"
 #include "mdss_mdp_trace.h"
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+#include "samsung/ss_dsi_panel_common.h"
+#endif
 
 /* wait for at least 2 vsyncs for lowest refresh rate (24hz) */
 #define VSYNC_TIMEOUT_US 100000
@@ -1009,6 +1012,10 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 	u32 data, flush;
 	struct mdss_mdp_video_ctx *ctx;
 	struct mdss_mdp_ctl *sctl = mdss_mdp_get_split_ctl(ctl);
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
+	struct samsung_display_driver_data *vdd = NULL;
+#endif
 
 	off = 0;
 	ctx = (struct mdss_mdp_video_ctx *) ctl->priv_data;
@@ -1025,6 +1032,15 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 	else if (ctl->panel_data->next && is_split_dst(ctl->mfd))
 		ctl->panel_data->next->panel_info.cont_splash_enabled = 0;
 
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
+				panel_data);
+	vdd = check_valid_ctrl(ctrl_pdata);
+	if (vdd->panel_func.samsung_tft_blic_init && \
+		 vdd->dtsi_data[ctrl_pdata->ndx].tft_common_support)
+		vdd->panel_func.samsung_tft_blic_init(ctrl_pdata);
+	else
+#endif
 #ifdef CONFIG_MACH_SAMSUNG
 	if (handoff) {
 		ctl->force_screen_state = MDSS_SCREEN_FORCE_BLANK;
@@ -1054,6 +1070,7 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 		mdss_mdp_display_wait4comp(ctl);
 	}
 #endif
+
 	if (!handoff) {
 		ret = mdss_mdp_ctl_intf_event(ctl, MDSS_EVENT_CONT_SPLASH_BEGIN,
 					      NULL);
