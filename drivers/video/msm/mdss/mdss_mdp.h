@@ -241,6 +241,9 @@ struct mdss_mdp_ctl {
 	int (*display_fnc) (struct mdss_mdp_ctl *ctl, void *arg);
 	int (*wait_fnc) (struct mdss_mdp_ctl *ctl, void *arg);
 	int (*wait_pingpong) (struct mdss_mdp_ctl *ctl, void *arg);
+#ifdef CONFIG_MACH_SAMSUNG
+	int (*wait_video_pingpong) (struct mdss_mdp_ctl *ctl, void *arg);
+#endif
 	u32 (*read_line_cnt_fnc) (struct mdss_mdp_ctl *);
 	int (*add_vsync_handler) (struct mdss_mdp_ctl *,
 					struct mdss_mdp_vsync_handler *);

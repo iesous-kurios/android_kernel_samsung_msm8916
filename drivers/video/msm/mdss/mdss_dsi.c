@@ -605,6 +605,11 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	mdss_dsi_clk_ctrl(ctrl_pdata, DSI_LINK_CLKS, 1);
 	mdss_dsi_sw_reset(ctrl_pdata, true);
 
+#ifdef CONFIG_MACH_SAMSUNG
+	if (mipi->lp11_init)
+		MIPI_OUTP((ctrl_pdata->ctrl_base) + 0xac, 0);
+#endif
+
 	/*
 	 * Issue hardware reset line after enabling the DSI clocks and data
 	 * data lanes for LP11 init
@@ -1292,6 +1297,14 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 		rc = mdss_dsi_register_recovery_handler(ctrl_pdata,
 			(struct mdss_intf_recovery *)arg);
 		break;
+#ifdef CONFIG_MACH_SAMSUNG
+	case MDSS_EVENT_FB_REGISTERED:
+		if (ctrl_pdata->registered) {
+			pr_debug("%s : event=%d, calling panel registered callback\n", __func__, event);
+			rc = ctrl_pdata->registered(pdata);
+		}
+		break;
+#endif
 	default:
 		pr_debug("%s: unhandled event=%d\n", __func__, event);
 		break;

@@ -153,6 +153,11 @@ void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 	struct dcs_cmd_req cmdreq;
 	struct mdss_panel_info *pinfo;
 
+	if (ctrl == NULL) {
+		pr_err("%s: Invalid input data\n", __func__);
+		return;
+	}
+
 	pinfo = &(ctrl->panel_data.panel_info);
 	if (pinfo->dcs_cmd_by_left) {
 		if (ctrl->ndx != DSI_CTRL_LEFT)
@@ -167,8 +172,10 @@ void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 	/*Panel ON/Off commands should be sent in DSI Low Power Mode*/
 	if (pcmds->link_state == DSI_LP_MODE)
 		cmdreq.flags  |= CMD_REQ_LP_MODE;
+#ifndef CONFIG_MACH_SAMSUNG
 	else if (pcmds->link_state == DSI_HS_MODE)
 		cmdreq.flags |= CMD_REQ_HS_MODE;
+#endif
 
 	cmdreq.rlen = 0;
 	cmdreq.cb = NULL;
@@ -323,12 +330,25 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->bklt_en_gpio), 0);
 			gpio_free(ctrl_pdata->bklt_en_gpio);
 		}
+
+#ifdef CONFIG_MACH_SAMSUNG
+		if (gpio_is_valid(ctrl_pdata->rst_gpio)) {
+			gpio_set_value((ctrl_pdata->rst_gpio), 0);
+			gpio_free(ctrl_pdata->rst_gpio);
+		}
+
+		if(pinfo->mipi.power_off_delay)
+			udelay(pinfo->mipi.power_off_delay);
+#endif
+
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
+#ifndef CONFIG_MACH_SAMSUNG
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
 		gpio_free(ctrl_pdata->rst_gpio);
+#endif
 		if (gpio_is_valid(ctrl_pdata->mode_gpio))
 			gpio_free(ctrl_pdata->mode_gpio);
 	}
@@ -536,6 +556,13 @@ static void mdss_dsi_panel_switch_mode(struct mdss_panel_data *pdata,
 	return;
 }
 
+#ifdef CONFIG_MACH_SAMSUNG
+static int mdss_dsi_panel_registered(struct mdss_panel_data *pdata)
+{
+	return 0;
+}
+#endif
+
 static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 							u32 bl_level)
 {
@@ -643,6 +670,10 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	pr_debug("%s: ctrl=%p ndx=%d\n", __func__, ctrl, ctrl->ndx);
 
+#ifdef CONFIG_MACH_SAMSUNG
+	pinfo->blank_state = MDSS_PANEL_BLANK_BLANK;
+#endif
+
 	if (pinfo->dcs_cmd_by_left) {
 		if (ctrl->ndx != DSI_CTRL_LEFT)
 			goto end;
@@ -652,7 +683,9 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds);
 
 end:
+#ifndef CONFIG_MACH_SAMSUNG
 	pinfo->blank_state = MDSS_PANEL_BLANK_BLANK;
+#endif
 	pr_debug("%s:-\n", __func__);
 	return 0;
 }
@@ -1602,6 +1635,11 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	rc = of_property_read_u32(np, "qcom,mdss-dsi-init-delay-us", &tmp);
 	pinfo->mipi.init_delay = (!rc ? tmp : 0);
 
+#ifdef CONFIG_MACH_SAMSUNG
+	rc = of_property_read_u32(np, "qcom,mdss-power-off-delay-us", &tmp);
+	pinfo->mipi.power_off_delay = (!rc ? tmp : 0);
+#endif
+
 	mdss_dsi_parse_roi_alignment(np, pinfo);
 
 	mdss_dsi_parse_trigger(np, &(pinfo->mipi.mdp_trigger),
@@ -1722,6 +1760,17 @@ int mdss_dsi_panel_init(struct device_node *node,
 	ctrl_pdata->low_power_config = mdss_dsi_panel_low_power_config;
 	ctrl_pdata->panel_data.set_backlight = mdss_dsi_panel_bl_ctrl;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
+#ifdef CONFIG_MACH_SAMSUNG
+	ctrl_pdata->registered = mdss_dsi_panel_registered;
+	ctrl_pdata->panel_reset = mdss_dsi_panel_reset;
+#endif
 
 	return 0;
 }
+
+#ifdef CONFIG_MACH_SAMSUNG
+int get_lcd_attached(char *mode)
+{
+	return 1;
+}
+#endif

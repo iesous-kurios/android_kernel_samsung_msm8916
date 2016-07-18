@@ -1343,10 +1343,16 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 				/* Stop Display thread */
 				if (mfd->disp_thread)
 					mdss_fb_stop_disp_thread(mfd);
+#ifdef CONFIG_MACH_SAMSUNG
+				if( !mfd->panel_info->panel_dead) {
+#endif
 				mutex_lock(&mfd->bl_lock);
 				mdss_fb_set_backlight(mfd, 0);
 				mfd->bl_updated = 0;
 				mutex_unlock(&mfd->bl_lock);
+#ifdef CONFIG_MACH_SAMSUNG
+				}
+#endif
 			}
 			mfd->panel_power_state = req_power_state;
 

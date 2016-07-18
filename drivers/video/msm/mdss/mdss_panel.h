@@ -29,6 +29,10 @@ struct panel_id {
 #define MDSS_DSI_RST_SEQ_LEN	10
 #define MDSS_MDP_MAX_FETCH 12
 
+#ifdef CONFIG_MACH_SAMSUNG
+#define MAX_PANEL_NAME_SIZE 100
+#endif
+
 /* panel type list */
 #define NO_PANEL		0xffff	/* No Panel */
 #define MDDI_PANEL		1	/* MDDI */
@@ -285,6 +289,9 @@ struct mipi_panel_info {
 
 	char lp11_init;
 	u32  init_delay;
+#ifdef CONFIG_MACH_SAMSUNG
+	u32  power_off_delay;
+#endif
 };
 
 struct edp_panel_info {
@@ -421,10 +428,33 @@ struct mdss_panel_info {
 	struct mdss_livedisplay_ctx *livedisplay;
 };
 
+#ifdef CONFIG_MACH_SAMSUNG
+struct mipi_samsung_driver_data {
+	struct msm_fb_data_type *mfd;
+	struct mdss_panel_data *pdata;
+	struct mdss_dsi_ctrl_pdata *ctrl_pdata;
+	struct mutex lock;
+
+	char panel_name[MAX_PANEL_NAME_SIZE];
+	int panel;
+	unsigned int manufacture_id;
+	unsigned int manufacture_date;
+	char ddi_id[5];
+	unsigned int id3;
+	struct smartdim_conf *sdimconf;
+	struct lcd_device *lcd_device;
+	void *mdss_panel_data;
+	void *mdss_dsi_ctrl_pdata;
+};
+#endif
+
 struct mdss_panel_data {
 	struct mdss_panel_info panel_info;
 	void (*set_backlight) (struct mdss_panel_data *pdata, u32 bl_level);
 	unsigned char *mmss_cc_base;
+#ifdef CONFIG_MACH_SAMSUNG
+	struct mipi_samsung_driver_data samsung_pdata;
+#endif
 
 	/**
 	 * event_handler() - callback handler for MDP core events

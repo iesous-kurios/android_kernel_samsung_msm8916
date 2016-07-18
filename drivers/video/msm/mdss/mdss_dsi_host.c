@@ -32,6 +32,10 @@
 
 struct mdss_dsi_ctrl_pdata *ctrl_list[DSI_CTRL_MAX];
 
+#ifdef CONFIG_MACH_SAMSUNG
+static struct mdss_dsi_ctrl_pdata *ctrl_backup;
+#endif
+
 struct mdss_hw mdss_dsi0_hw = {
 	.hw_ndx = MDSS_HW_DSI0,
 	.ptr = NULL,
@@ -919,7 +923,11 @@ void mdss_dsi_op_mode_config(int mode,
 			DSI_INTR_CMD_MDP_DONE_MASK | DSI_INTR_BTA_DONE_MASK;
 	}
 
+#ifndef CONFIG_MACH_SAMSUNG
 	dma_ctrl = BIT(28) | BIT(26);	/* embedded mode & LP mode */
+#else
+	dma_ctrl = BIT(28);	/* embedded mode & HS mode */
+#endif
 	if (mdss_dsi_sync_wait_enable(ctrl_pdata))
 		dma_ctrl |= BIT(31);
 
@@ -1894,6 +1902,9 @@ void mdss_dsi_cmd_mdp_start(struct mdss_dsi_ctrl_pdata *ctrl)
 	spin_lock_irqsave(&ctrl->mdp_lock, flag);
 	mdss_dsi_enable_irq(ctrl, DSI_MDP_TERM);
 	ctrl->mdp_busy = true;
+#ifdef CONFIG_MACH_SAMSUNG
+	ctrl_backup = ctrl;
+#endif
 	INIT_COMPLETION(ctrl->mdp_comp);
 	MDSS_XLOG(ctrl->ndx, ctrl->mdp_busy, current->pid);
 	spin_unlock_irqrestore(&ctrl->mdp_lock, flag);

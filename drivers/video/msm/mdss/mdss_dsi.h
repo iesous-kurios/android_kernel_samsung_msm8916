@@ -261,6 +261,9 @@ struct dsi_drv_cm_data {
 	struct regulator *vdd_vreg;
 	struct regulator *vdd_io_vreg;
 	struct regulator *vdda_vreg;
+#ifdef CONFIG_MACH_SAMSUNG
+	int broadcast_enable;
+#endif
 };
 
 struct dsi_pinctrl_res {
@@ -298,6 +301,35 @@ enum {
 #define DSI_EV_STOP_HS_CLK_LANE		0x40000000
 #define DSI_EV_MDP_BUSY_RELEASE		0x80000000
 
+#ifdef CONFIG_MACH_SAMSUNG
+struct mdss_dsi_panel_cmd_list {
+	struct dsi_panel_cmds panel_manufacture_id_cmds;
+	struct dsi_panel_cmds panel_manufacture_id_register_set_cmds;
+	struct dsi_panel_cmds disp_on_seq;
+	struct dsi_panel_cmds disp_off_seq;
+	struct dsi_panel_cmds disp_on_cmd;
+	struct dsi_panel_cmds disp_off_cmd;
+	struct dsi_panel_cmds display_off_cmd;
+	struct dsi_panel_cmds hsync_on_seq;
+	struct dsi_panel_cmds partialdisp_on_cmd;
+	struct dsi_panel_cmds partialdisp_off_cmd;
+	struct dsi_panel_cmds mtp_enable_cmd;
+	struct dsi_panel_cmds mtp_disable_cmd;
+	struct dsi_panel_cmds rddpm_cmd;
+	struct dsi_panel_cmds brightness_cmd;
+	struct dsi_panel_cmds aid_cmd_list;
+	struct dsi_panel_cmds aclcont_cmd_list;
+	struct dsi_panel_cmds acl_cmd_list;
+	struct dsi_panel_cmds acl_off_cmd;
+	struct dsi_panel_cmds elvss_cmd_list;
+	struct dsi_panel_cmds smart_acl_elvss_cmd_list;
+	struct dsi_panel_cmds gamma_cmd_list;
+	struct dsi_panel_cmds mtp_read_sysfs_cmds;
+	struct dsi_panel_cmds nv_mtp_register_set_cmds;
+	struct dsi_panel_cmds nv_mtp_read_cmds;
+};
+#endif
+
 struct mdss_dsi_ctrl_pdata {
 	int ndx;	/* panel_num */
 	int (*on) (struct mdss_panel_data *pdata);
@@ -307,7 +339,13 @@ struct mdss_dsi_ctrl_pdata {
 	int (*check_status) (struct mdss_dsi_ctrl_pdata *pdata);
 	int (*check_read_status) (struct mdss_dsi_ctrl_pdata *pdata);
 	int (*cmdlist_commit)(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp);
+#ifdef CONFIG_MACH_SAMSUNG
+	int (*registered) (struct mdss_panel_data *pdata);
+#endif
 	void (*switch_mode) (struct mdss_panel_data *pdata, int mode);
+#ifdef CONFIG_MACH_SAMSUNG
+	int (*panel_reset) (struct mdss_panel_data *pdata, int enable);
+#endif
 	struct mdss_panel_data panel_data;
 	unsigned char *ctrl_base;
 	u32 hw_rev;
@@ -371,6 +409,9 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds off_cmds;
 	struct dsi_panel_cmds status_cmds;
 	u32 status_cmds_rlen;
+#ifdef CONFIG_MACH_SAMSUNG
+	struct mdss_dsi_panel_cmd_list cmd_list;
+#endif
 	u32 status_value;
 	u32 status_error_count;
 
