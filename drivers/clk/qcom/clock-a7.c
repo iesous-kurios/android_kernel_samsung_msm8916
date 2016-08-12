@@ -280,6 +280,7 @@ static void get_speed_bin_b(struct platform_device *pdev, int *bin,
 	*bin = 0;
 	*version = 0;
 
+#ifndef CONFIG_MACH_SAMSUNG
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "efuse1");
 	if (res) {
 		base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
@@ -302,6 +303,7 @@ static void get_speed_bin_b(struct platform_device *pdev, int *bin,
 			return;
 		}
 	}
+#endif
 
 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "efuse");
 	if (!res) {
