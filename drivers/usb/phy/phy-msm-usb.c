@@ -105,7 +105,9 @@ static unsigned int enable_dbg_log = 1;
 module_param(enable_dbg_log, uint, S_IRUGO | S_IWUSR);
 MODULE_PARM_DESC(enable_dbg_log, "Debug buffer events");
 
+#ifndef CONFIG_MACH_SAMSUNG
 static DECLARE_COMPLETION(pmic_vbus_init);
+#endif
 static struct msm_otg *the_msm_otg;
 static bool debug_aca_enabled;
 static bool debug_bus_voting_enabled;
@@ -139,6 +141,15 @@ static bool bus_clk_rate_set;
 
 #ifdef CONFIG_USB_NOTIFY_LAYER
 #include "phy-msm-usb_sec.c"
+#endif
+
+#ifdef CONFIG_MACH_SAMSUNG
+static void msm_otg_set_vbus_state(int online);
+void sec_otg_set_vbus_state(int online)
+{
+	msm_otg_set_vbus_state(online);
+}
+EXPORT_SYMBOL(sec_otg_set_vbus_state);
 #endif
 
 static void
@@ -1853,6 +1864,7 @@ static void msm_otg_notify_host_mode(struct msm_otg *motg, bool host_mode)
 	}
 }
 
+#ifndef CONFIG_MACH_SAMSUNG
 static int msm_otg_notify_chg_type(struct msm_otg *motg)
 {
 	static int charger_type;
@@ -1939,9 +1951,11 @@ static void msm_otg_set_online_status(struct msm_otg *motg)
 	if (power_supply_set_online(psy, false))
 		dev_dbg(motg->phy.dev, "error setting power supply property\n");
 }
+#endif
 
 static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 {
+#ifndef CONFIG_MACH_SAMSUNG
 	struct usb_gadget *g = motg->phy.otg->gadget;
 
 	if (g && g->is_a_peripheral)
@@ -1981,6 +1995,7 @@ static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 		pm8921_charger_vbus_draw(mA);
 
 	motg->cur_power = mA;
+#endif
 }
 
 static int msm_otg_set_power(struct usb_phy *phy, unsigned mA)
@@ -3137,7 +3152,9 @@ static void msm_chg_detect_work(struct work_struct *w)
 				init_completion(&motg->ext_chg_wait);
 				motg->ext_chg_active = DEFAULT;
 		}
+#ifndef CONFIG_MACH_SAMSUNG
 		msm_otg_notify_chg_type(motg);
+#endif
 		msm_chg_block_off(motg);
 		msm_chg_enable_aca_det(motg);
 		/*
@@ -3180,7 +3197,9 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 {
 	struct msm_otg_platform_data *pdata = motg->pdata;
 	u32 otgsc = readl(USB_OTGSC);
+#ifndef CONFIG_MACH_SAMSUNG
 	int ret;
+#endif
 
 	switch (pdata->mode) {
 	case USB_OTG:
@@ -3207,10 +3226,14 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 				clear_bit(B_SESS_VLD, &motg->inputs);
 		} else if (pdata->otg_control == OTG_PMIC_CONTROL) {
 			if (pdata->pmic_id_irq) {
+#ifndef CONFIG_MACH_SAMSUNG
 				if (msm_otg_read_pmic_id_state(motg))
 					set_bit(ID, &motg->inputs);
 				else
 					clear_bit(ID, &motg->inputs);
+#else
+				set_bit(ID, &motg->inputs);
+#endif
 			} else if (motg->ext_id_irq) {
 				if (gpio_get_value(pdata->usb_id_gpio))
 					set_bit(ID, &motg->inputs);
@@ -3221,7 +3244,12 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 					set_bit(ID, &motg->inputs);
 				else
 					clear_bit(ID, &motg->inputs);
+#ifdef CONFIG_MACH_SAMSUNG
+			} else {
+				set_bit(ID, &motg->inputs);
+#endif
 			}
+#ifndef CONFIG_MACH_SAMSUNG
 			/*
 			 * VBUS initial state is reported after PMIC
 			 * driver initialization. Wait for it.
@@ -3237,6 +3265,7 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 				clear_bit(B_SESS_VLD, &motg->inputs);
 				pmic_vbus_init.done = 1;
 			}
+#endif
 		}
 		break;
 	case USB_HOST:
@@ -3250,6 +3279,7 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 			else
 				clear_bit(B_SESS_VLD, &motg->inputs);
 		} else if (pdata->otg_control == OTG_PMIC_CONTROL) {
+#ifndef CONFIG_MACH_SAMSUNG
 			/*
 			 * VBUS initial state is reported after PMIC
 			 * driver initialization. Wait for it.
@@ -3265,6 +3295,7 @@ static void msm_otg_init_sm(struct msm_otg *motg)
 				clear_bit(B_SESS_VLD, &motg->inputs);
 				pmic_vbus_init.done = 1;
 			}
+#endif
 		} else if (pdata->otg_control == OTG_USER_CONTROL) {
 			set_bit(ID, &motg->inputs);
 			set_bit(B_SESS_VLD, &motg->inputs);
@@ -3338,7 +3369,11 @@ static void msm_otg_sm_work(struct work_struct *w)
 		msm_otg_reset(otg->phy);
 		msm_otg_init_sm(motg);
 		if (!psy && legacy_power_supply) {
+#ifdef CONFIG_MACH_SAMSUNG
+			psy = power_supply_get_by_name("msm-usb");
+#else
 			psy = power_supply_get_by_name("usb");
+#endif
 
 			if (!psy)
 				pr_err("couldn't get usb power supply\n");
@@ -3491,6 +3526,7 @@ static void msm_otg_sm_work(struct work_struct *w)
 			 * switch from ACA to PMIC.  Check ID state
 			 * before entering into low power mode.
 			 */
+#ifndef CONFIG_MACH_SAMSUNG
 			if ((motg->pdata->otg_control == OTG_PMIC_CONTROL) &&
 					!msm_otg_read_pmic_id_state(motg)) {
 				pr_debug("process missed ID intr\n");
@@ -3505,6 +3541,7 @@ static void msm_otg_sm_work(struct work_struct *w)
 					"PM RUNTIME: NOCHG PUT",
 					get_pm_runtime_counter(otg->phy->dev),
 					motg->pm_done);
+#endif
 			pm_runtime_put_noidle(otg->phy->dev);
 			/*
 			 * Only if autosuspend was enabled in probe, it will be
@@ -4265,6 +4302,7 @@ static irqreturn_t msm_otg_irq(int irq, void *data)
 static void msm_otg_set_vbus_state(int online)
 {
 	struct msm_otg *motg = the_msm_otg;
+#ifndef CONFIG_MACH_SAMSUNG
 	static bool init;
 
 	if (online) {
@@ -4280,7 +4318,19 @@ static void msm_otg_set_vbus_state(int online)
 		if (!test_and_clear_bit(B_SESS_VLD, &motg->inputs) && init)
 			return;
 	}
+#else
+	if (online) {
+		pr_info("PMIC: BSV set\n");
+		set_bit(B_SESS_VLD, &motg->inputs);
+		motg->chg_state = USB_CHG_STATE_DETECTED;
+		motg->chg_type = USB_SDP_CHARGER;
+	} else {
+		pr_info("PMIC: BSV clear\n");
+		clear_bit(B_SESS_VLD, &motg->inputs);
+	}
+#endif
 
+#ifndef CONFIG_MACH_SAMSUNG
 	/* do not queue state m/c work if id is grounded */
 	if (!test_bit(ID, &motg->inputs)) {
 		/*
@@ -4309,6 +4359,7 @@ static void msm_otg_set_vbus_state(int online)
 	}
 
 out:
+#endif
 	if (test_bit(MHL, &motg->inputs) ||
 			mhl_det_in_progress) {
 		pr_debug("PMIC: BSV interrupt ignored in MHL\n");
@@ -4378,6 +4429,7 @@ static void msm_id_status_w(struct work_struct *w)
 
 }
 
+#ifndef CONFIG_MACH_SAMSUNG
 #define MSM_ID_STATUS_DELAY	5 /* 5msec */
 static irqreturn_t msm_id_irq(int irq, void *data)
 {
@@ -4396,6 +4448,7 @@ static irqreturn_t msm_id_irq(int irq, void *data)
 
 	return IRQ_HANDLED;
 }
+#endif
 
 int msm_otg_pm_notify(struct notifier_block *notify_block,
 					unsigned long mode, void *unused)
@@ -5312,6 +5365,13 @@ static ssize_t dpdm_pulldown_enable_store(struct device *dev,
 static DEVICE_ATTR(dpdm_pulldown_enable, S_IRUGO | S_IWUSR,
 		dpdm_pulldown_enable_show, dpdm_pulldown_enable_store);
 
+#ifdef CONFIG_MACH_SAMSUNG
+static int dummy_vbus_power(bool enable)
+{
+	return 0;
+}
+#endif
+
 struct msm_otg_platform_data *msm_otg_dt_to_pdata(struct platform_device *pdev)
 {
 	struct device_node *node = pdev->dev.of_node;
@@ -5390,6 +5450,12 @@ struct msm_otg_platform_data *msm_otg_dt_to_pdata(struct platform_device *pdev)
 	dev_info(&pdev->dev, "get otg5v_en_gpio = %d\n", pdata->otg5v_en_gpio);
 #endif
 
+#ifdef CONFIG_MACH_SAMSUNG
+	if (pdata->mode == USB_OTG)
+		/*Booster Work*/
+		pdata->vbus_power = dummy_vbus_power;
+#endif
+
 	pdata->l1_supported = of_property_read_bool(node,
 				"qcom,hsusb-l1-supported");
 	pdata->enable_ahb2ahb_bypass = of_property_read_bool(node,
@@ -5420,7 +5486,9 @@ static int msm_otg_probe(struct platform_device *pdev)
 	struct usb_phy *phy;
 	struct msm_otg_platform_data *pdata;
 	void __iomem *tcsr;
+#ifndef CONFIG_MACH_SAMSUNG
 	int id_irq = 0;
+#endif
 
 	dev_info(&pdev->dev, "msm_otg probe\n");
 
@@ -5897,6 +5965,7 @@ static int msm_otg_probe(struct platform_device *pdev)
 		goto free_async_irq;
 	}
 
+#ifndef CONFIG_MACH_SAMSUNG
 	if (motg->pdata->mode == USB_OTG &&
 		motg->pdata->otg_control == OTG_PMIC_CONTROL &&
 		!motg->phy_irq) {
@@ -5984,6 +6053,7 @@ static int msm_otg_probe(struct platform_device *pdev)
 		}
 #endif
 	}
+#endif
 
 	msm_hsusb_mhl_switch_enable(motg, 1);
 
@@ -6041,8 +6111,13 @@ static int msm_otg_probe(struct platform_device *pdev)
 		pm_runtime_use_autosuspend(&pdev->dev);
 	}
 
+#ifdef CONFIG_MACH_SAMSUNG
+	motg->usb_psy.name = "msm-usb";
+	motg->usb_psy.type = POWER_SUPPLY_TYPE_UNKNOWN;
+#else
 	motg->usb_psy.name = "usb";
 	motg->usb_psy.type = POWER_SUPPLY_TYPE_USB;
+#endif
 	motg->usb_psy.supplied_to = otg_pm_power_supplied_to;
 	motg->usb_psy.num_supplicants = ARRAY_SIZE(otg_pm_power_supplied_to);
 	motg->usb_psy.properties = otg_pm_power_props_usb;
@@ -6062,8 +6137,10 @@ static int msm_otg_probe(struct platform_device *pdev)
 			psy = &motg->usb_psy;
 	}
 
+#ifndef CONFIG_MACH_SAMSUNG
 	if (legacy_power_supply && pdata->otg_control == OTG_PMIC_CONTROL)
 		pm8921_charger_register_vbus_sn(&msm_otg_set_vbus_state);
+#endif
 
 	ret = msm_otg_setup_ext_chg_cdev(motg);
 	if (ret)
@@ -6093,7 +6170,9 @@ remove_cdev:
 	}
 	if (psy)
 		power_supply_unregister(psy);
+#ifndef CONFIG_MACH_SAMSUNG
 remove_phy:
+#endif
 	usb_remove_phy(&motg->phy);
 free_async_irq:
 	if (motg->async_irq)
