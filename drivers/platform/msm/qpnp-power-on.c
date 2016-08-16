@@ -24,6 +24,9 @@
 #include <linux/input.h>
 #include <linux/log2.h>
 #include <linux/qpnp/power-on.h>
+#ifdef CONFIG_QPNP_POWER_ON_WAKELOCK
+#include <linux/wakelock.h>
+#endif
 
 #define CREATE_MASK(NUM_BITS, POS) \
 	((unsigned char) (((1 << (NUM_BITS)) - 1) << (POS)))
@@ -159,6 +162,9 @@ struct qpnp_pon {
 	u16 base;
 	struct delayed_work bark_work;
 	u32 dbc;
+#ifdef CONFIG_QPNP_POWER_ON_WAKELOCK
+	struct wake_lock wakelock;
+#endif
 	int pon_trigger_reason;
 	int pon_power_off_reason;
 	u32 uvlo;
@@ -609,6 +615,18 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 					cfg->key_code, pon_rt_sts);
 	key_status = pon_rt_sts & pon_rt_bit;
 
+#ifdef CONFIG_QPNP_POWER_ON_WAKELOCK
+	if (cfg->pon_type == PON_KPDPWR) {
+	       if (key_status) {
+			wake_lock(&pon->wakelock);
+			pr_debug("++ kpdpwr wake lock\n");
+		} else {
+			wake_unlock(&pon->wakelock);
+			pr_debug("-- kpdpwr wake unlock\n");
+		}
+	}
+#endif
+
 	/* simulate press event in case release event occured
 	 * without a press event
 	 */
@@ -926,6 +944,11 @@ qpnp_pon_request_irqs(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 
 	switch (cfg->pon_type) {
 	case PON_KPDPWR:
+#if defined (CONFIG_QPNP_POWER_ON_WAKELOCK)
+		rc = qpnp_pon_input_dispatch(pon, PON_KPDPWR);
+		if (rc)
+			dev_err(&pon->spmi->dev, "PON_KPDPWR input dispatch failed!\n");
+#endif
 		rc = devm_request_irq(&pon->spmi->dev, cfg->state_irq,
 							qpnp_kpdpwr_irq,
 				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
@@ -1317,6 +1340,10 @@ static int qpnp_pon_config_init(struct qpnp_pon *pon)
 			goto free_input_dev;
 		}
 	}
+
+#ifdef CONFIG_QPNP_POWER_ON_WAKELOCK
+	wake_lock_init(&pon->wakelock, WAKE_LOCK_SUSPEND, "kpdpwr");
+#endif
 
 	for (i = 0; i < pon->num_pon_config; i++) {
 		cfg = &pon->pon_cfg[i];
@@ -1715,6 +1742,10 @@ static int qpnp_pon_probe(struct spmi_device *spmi)
 static int qpnp_pon_remove(struct spmi_device *spmi)
 {
 	struct qpnp_pon *pon = dev_get_drvdata(&spmi->dev);
+
+#ifdef CONFIG_QPNP_POWER_ON_WAKELOCK
+	wake_lock_destroy(&pon->wakelock);
+#endif
 
 	device_remove_file(&spmi->dev, &dev_attr_debounce_us);
 
