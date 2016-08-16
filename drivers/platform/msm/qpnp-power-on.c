@@ -153,6 +153,9 @@ struct qpnp_pon {
 	struct input_dev *pon_input;
 	struct qpnp_pon_config *pon_cfg;
 	int num_pon_config;
+#if defined(CONFIG_QPNP_RESIN)
+	int resin_state;
+#endif
 	u16 base;
 	struct delayed_work bark_work;
 	u32 dbc;
@@ -536,6 +539,18 @@ static int qpnp_pon_store_and_clear_warm_reset(struct qpnp_pon *pon)
 	return 0;
 }
 
+#if defined(CONFIG_QPNP_RESIN)
+int qpnp_resin_state(void)
+{
+	struct qpnp_pon *pon = sys_reset_dev;
+	if (!pon)
+		return -EPROBE_DEFER;
+
+	return pon->resin_state;
+}
+EXPORT_SYMBOL(qpnp_resin_state);
+#endif
+
 static struct qpnp_pon_config *
 qpnp_get_cfg(struct qpnp_pon *pon, u32 pon_type)
 {
@@ -606,6 +621,15 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 	input_sync(pon->pon_input);
 
 	cfg->old_state = !!key_status;
+
+#if defined(CONFIG_QPNP_RESIN)
+	/* RESIN is used for VOL DOWN key, it should report the keycode for kernel panic */
+	if ((cfg->key_code == 114) && (pon_rt_sts & pon_rt_bit)) {
+		pon->resin_state = 1;
+	} else if ((cfg->key_code == 114) && !(pon_rt_sts & pon_rt_bit)) {
+		pon->resin_state = 0;
+	}
+#endif
 
 	return 0;
 }
