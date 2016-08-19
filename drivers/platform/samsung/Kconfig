@@ -15,6 +15,13 @@ config SEC_GT58_PROJECT
 	help
 	  Support for Samsung GT5 8 Project
 
+config SEC_GT510_PROJECT
+	bool "Samsung GT5 10 Project"
+	depends on ARCH_MSM8916
+	select MACH_SAMSUNG
+	help
+	  Support for Samsung GT5 8 Project
+
 endmenu
 
 menu "Samsung board selection"
@@ -24,6 +31,12 @@ config MACH_GT58WIFI_EUR_OPEN
 	depends on SEC_GT58_PROJECT
 	help
 	  Support for Samsung GT5 8 WIFI EUR Open device.
+
+config MACH_GT510WIFI_EUR_OPEN
+	bool "Samsung GT5 10 WIFI EUR Open"
+	depends on SEC_GT510_PROJECT
+	help
+	  Support for Samsung GT5 10 WIFI EUR Open device.
 
 endmenu
 
