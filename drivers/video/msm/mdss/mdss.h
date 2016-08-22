@@ -126,6 +126,11 @@ struct mdss_data_type {
 	struct mdss_util_intf *mdss_util;
 	struct mdss_panel_data *pdata;
 
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	char __iomem *mdss_base;
+	size_t mdp_reg_size;
+#endif
+
 	struct platform_device *pdev;
 	struct dss_io_data mdss_io;
 	struct dss_io_data vbif_io;
@@ -188,6 +193,9 @@ struct mdss_data_type {
 	struct mdss_fudge_factor ib_factor;
 	struct mdss_fudge_factor ib_factor_overlap;
 	struct mdss_fudge_factor ib_factor_cmd;
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	struct mdss_fudge_factor ib_factor_single;
+#endif
 	struct mdss_fudge_factor clk_factor;
 
 	u32 disable_prefill;

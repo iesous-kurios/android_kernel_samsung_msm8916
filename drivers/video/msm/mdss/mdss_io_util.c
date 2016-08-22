@@ -114,6 +114,9 @@ int msm_dss_ioremap_byname(struct platform_device *pdev,
 			__builtin_return_address(0), __func__, name);
 		return -EIO;
 	}
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+	io_data->physical_base = res->start;
+#endif
 
 	return 0;
 } /* msm_dss_ioremap_byname */

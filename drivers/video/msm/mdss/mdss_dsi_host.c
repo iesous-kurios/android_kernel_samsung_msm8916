@@ -72,6 +72,13 @@ static struct mdss_dsi_event dsi_event;
 
 static int dsi_event_thread(void *data);
 
+#if defined(CONFIG_FB_MSM_MDSS_SAMSUNG)
+struct mdss_dsi_ctrl_pdata **mdss_dsi_get_ctrl(void)
+{
+	return ctrl_list;
+}
+#endif
+
 void mdss_dsi_ctrl_init(struct device *ctrl_dev,
 			struct mdss_dsi_ctrl_pdata *ctrl)
 {
