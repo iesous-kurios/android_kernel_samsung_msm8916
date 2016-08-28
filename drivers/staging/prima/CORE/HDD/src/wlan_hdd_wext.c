@@ -8533,10 +8533,6 @@ int wlan_hdd_set_filter(hdd_context_t *pHddCtx, tpPacketFilterCfg pRequest,
                     (pRequest->paramsData[i].dataLength))
                     return -EINVAL;
 
-                if ((sizeof(packetFilterSetReq.paramsData[i].compareData)) <
-                    (pRequest->paramsData[i].dataLength))
-                    return -EINVAL;
-
                 memcpy(&packetFilterSetReq.paramsData[i].compareData,
                         pRequest->paramsData[i].compareData, pRequest->paramsData[i].dataLength);
                 memcpy(&packetFilterSetReq.paramsData[i].dataMask,

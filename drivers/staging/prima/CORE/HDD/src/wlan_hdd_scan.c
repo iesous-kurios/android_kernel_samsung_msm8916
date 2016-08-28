@@ -753,11 +753,7 @@ int __iw_set_scan(struct net_device *dev, struct iw_request_info *info,
                 scanRequest.SSIDs.numOfSSIDs = 0;
                 VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_ERROR, "%s: Unable to allocate memory",__func__);
                 VOS_ASSERT(0);
-               }
-           }
-          else
-          {
-            hddLog(LOGE, FL("Invalid essid length : %d"), scanReq->essid_len);
+              }
           }
           else
           {
