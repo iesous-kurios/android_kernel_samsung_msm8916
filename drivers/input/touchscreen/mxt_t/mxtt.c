@@ -631,7 +631,7 @@ static int __init mxt_init_charger_notify(void)
 		cable->nb.notifier_call = mxt_charger_notify;
 
 		ret = extcon_register_interest(&cable->extcon_nb,
-				EXTCON_DEV_NAME,
+				"extcon-muic",
 				extcon_cable_name[cable->cable_type],
 				&cable->nb);
 		if (ret)
