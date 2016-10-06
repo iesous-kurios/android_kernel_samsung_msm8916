@@ -526,7 +526,7 @@ int _kgsl_get_context_id(struct kgsl_device *device,
 
 	idr_preload(GFP_KERNEL);
 	write_lock(&device->context_lock);
-	id = idr_alloc(&device->context_idr, context, 1,
+	id = idr_alloc_cyclic(&device->context_idr, context, 1,
 		KGSL_MEMSTORE_MAX, GFP_NOWAIT);
 	write_unlock(&device->context_lock);
 	idr_preload_end();
@@ -4883,6 +4883,8 @@ static int __init kgsl_core_init(void)
 	}
 
 	kgsl_memfree_init();
+
+	kgsl_heap_init();
 
 	return 0;
 
