@@ -410,19 +410,22 @@ int max77849_irq_init(struct max77849_dev *max77849)
 	max77849_write_reg(max77849->i2c, MAX77849_PMIC_REG_INTSRC_MASK,
 			   i2c_data);
 
-	ret = request_threaded_irq(max77849->irq, NULL, max77849_irq_thread,
-			IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-			"max77849-irq", max77849);
+	if (max77849->irq) {
+		ret = request_threaded_irq(max77849->irq, NULL, max77849_irq_thread,
+				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+				"max77849-irq", max77849);
 
-	if (ret) {
-		dev_err(max77849->dev, "Failed to request IRQ %d: %d\n",
-			max77849->irq, ret);
-		return ret;
-	}
+		if (ret) {
+			dev_err(max77849->dev, "Failed to request IRQ %d: %d\n",
+				max77849->irq, ret);
+			return ret;
+		}
+	} else {
+		pr_err("%s: IRQ is null\n", __func__);
+  	}
 
 #ifdef CONFIG_MUIC_RESET_PIN_ENABLE
-	if (muic_reset_pin)
-	{
+	if (max77849->irq_reset) {
 		ret = request_threaded_irq(max77849->irq_reset, NULL, max77849_reset_irq_thread,
 				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 				"max77849-reset_irq", max77849);
@@ -432,8 +435,11 @@ int max77849_irq_init(struct max77849_dev *max77849)
 				max77849->irq_reset, ret);
 			return ret;
 		}
-	}
+	} else {
+		pr_err("%s: irq_reset IRQ is null\n", __func__);
+  	}
 #endif
+
 	return 0;
 }
 
