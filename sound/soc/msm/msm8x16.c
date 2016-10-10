@@ -491,7 +491,6 @@ static int msm_auxpcm_be_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	return 0;
 }
 
-#ifndef CONFIG_SAMSUNG_JACK
 static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 {
 	struct snd_soc_card *card = codec->card;
@@ -518,7 +517,6 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 
 	return 0;
 }
-#endif
 
 static int msm_pri_rx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 				struct snd_pcm_hw_params *params)
@@ -2077,9 +2075,9 @@ static int msm_audrx_init(struct snd_soc_pcm_runtime *rtd)
 
 	snd_soc_dapm_sync(dapm);
 
-#ifndef CONFIG_SAMSUNG_JACK
 	msm8x16_wcd_spk_ext_pa_cb(enable_spk_ext_pa, codec);
 
+#ifndef CONFIG_SAMSUNG_JACK
 	mbhc_cfg.calibration = def_msm8x16_wcd_mbhc_cal();
 	if (mbhc_cfg.calibration) {
 		ret = msm8x16_wcd_hs_detect(codec, &mbhc_cfg);

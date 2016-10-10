@@ -442,6 +442,7 @@ static bool msm8x16_adj_ref_current(struct snd_soc_codec *codec,
 
 	return true;
 }
+#endif
 
 void msm8x16_wcd_spk_ext_pa_cb(
 		int (*codec_spk_ext_pa)(struct snd_soc_codec *codec,
@@ -453,6 +454,7 @@ void msm8x16_wcd_spk_ext_pa_cb(
 	msm8x16_wcd->codec_spk_ext_pa_cb = codec_spk_ext_pa;
 }
 
+#ifndef CONFIG_SAMSUNG_JACK
 static void msm8x16_wcd_compute_impedance(struct snd_soc_codec *codec, s16 l,
 				s16 r, uint32_t *zl, uint32_t *zr, bool high)
 {
