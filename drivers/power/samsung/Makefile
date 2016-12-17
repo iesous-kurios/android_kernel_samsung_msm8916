@@ -6,6 +6,8 @@ endif
 # Fuel Gauge
 obj-$(CONFIG_FUELGAUGE_DUMMY)		+= sec_fuelgauge.o
 obj-$(CONFIG_FUELGAUGE_MAX77849)	+= max77849_fuelgauge.o
+obj-$(CONFIG_FUELGAUGE_RT5033)		+= rt5033_fuelgauge.o
 
 # Charger
 obj-$(CONFIG_CHARGER_MAX77849)		+= max77849_charger.o
+obj-$(CONFIG_CHARGER_RT5033)		+= rt5033_charger.o

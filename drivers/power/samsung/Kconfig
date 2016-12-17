@@ -143,6 +143,15 @@ config FUELGAUGE_MAX77849_COULOMB_COUNTING
 	  This mode is for target that consumes high current
 	  like tablet.
 
+config FUELGAUGE_RT5033
+	tristate "RT5033 fuel gauge driver"
+	depends on BATTERY_SAMSUNG
+	help
+	 Say Y to include support
+	 for Richtek RT5033 fuel gauge driver.
+	 This driver source code implemented
+	 all functions for RT5033 fuel gauge.
+
 # Charger
 config CHARGER_DUMMY
 	tristate "dummy charger driver"
@@ -162,3 +171,12 @@ config CHARGER_MAX77849
           MAX77849 incluse muic, pmic, haptic, led,
           flash driver.
           You have to define MFD_MAX77849
+
+config CHARGER_RT5033
+	tristate "RT5033 charger driver"
+	default n
+	help
+	 Say Y to include support
+	 for RT5033 charger driver.
+	 This driver source code implemented
+	 all functions for RT5033 charger.
