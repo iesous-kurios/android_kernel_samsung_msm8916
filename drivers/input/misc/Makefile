@@ -91,6 +91,7 @@ obj-$(CONFIG_SENSORS_SX9500)        	+= sx9500.o
 obj-$(CONFIG_SENSORS_SX9500_WIFI)	+= sx9500_wifi.o
 obj-$(CONFIG_SENSORS_TCS3490)		+= tcs3490.o
 obj-$(CONFIG_SENSORS_SAMSUNG_HALL)	+= samsung_hall.o
+obj-$(CONFIG_SENSORS_GP2A002)		+= gp2a002.o
 
 obj-$(CONFIG_SENSORS_BMA2X2)	+= bma2x2.o
 obj-$(CONFIG_SENSORS_LTR553)	+= ltr553.o
