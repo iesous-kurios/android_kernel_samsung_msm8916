@@ -652,6 +652,12 @@ config DYNAMIC_MICBIAS_CONTROL
 	 When mic does not used or button is released,
 	 micbias set to low voltage.
 
+config MSM_VIBRATOR
+        tristate "MSM_VIBRATOR"
+	default n
+	help
+	Say Y to enable MSM_VIBRATOR support.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
