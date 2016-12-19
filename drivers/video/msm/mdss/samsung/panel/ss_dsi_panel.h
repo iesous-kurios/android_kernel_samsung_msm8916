@@ -42,4 +42,8 @@ Copyright (C) 2012, Samsung Electronics. All rights reserved.
 #define S6D7AA0_LTL101AT01_SUPPORT_PANEL_COUNT 1
 #endif
 
+#ifdef CONFIG_PANEL_SC7798A_BV045WVM_WVGA
+#define SC7798A_BV045WVM_SUPPORT_PANEL_COUNT 1
+#endif
+
 #endif
