@@ -296,9 +296,18 @@ static void msm_restart_prepare(const char *cmd)
 					     restart_reason);
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
+#ifdef CONFIG_MACH_SAMSUNG
+		} else if (strlen(cmd) == 0) {
+		        __raw_writel(0x12345678, restart_reason);
+#endif
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
+#ifdef CONFIG_MACH_SAMSUNG
+	} else {
+		printk(KERN_NOTICE "%s: clear reset flag\n", __func__);
+		__raw_writel(0x12345678, restart_reason);
+#endif
 	}
 
 	flush_cache_all();
